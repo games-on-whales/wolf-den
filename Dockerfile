@@ -23,7 +23,6 @@ FROM base AS final
 
 USER root
 
-ARG TARGETARCH=TARGETVARIANT
 ARG GOSU_VERSION=1.14
 
 RUN <<_INSTALL_PACKAGES
@@ -48,7 +47,7 @@ apt-get install -y --no-install-recommends \
 echo "**** Install gosu ****"
 wget --progress=dot:giga \
     -O /usr/bin/gosu \
-    "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${TARGETARCH}${TARGETVARIANT}"
+    "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64"
 chmod +x /usr/bin/gosu
 
 echo "**** Verify gosu works ****"
