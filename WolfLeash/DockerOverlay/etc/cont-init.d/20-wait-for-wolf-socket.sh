@@ -2,7 +2,7 @@
 
 set -e
 
-SOCKET=${WOLF_SOCKET_PATH:-/etc/wolf/cfg/wolf.sock}
+SOCKET=${WOLF_SOCKET_PATH:-/var/run/wolf/wolf.sock}
 TIMEOUT=${WOLF_SOCKET_TIMEOUT:-30}
 INTERVAL=1
 
