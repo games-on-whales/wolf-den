@@ -25,7 +25,7 @@ docker run --name wolf-den \
   -p 8080:8080 \
   -e WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
   -v /var/run/wolf:/var/run/wolf \
-  -v /etc/wolf/wolf-den:/app/WolfLeash/ \
+  -v /etc/wolf/wolf-den:/app/wolf-den/ \
   ghcr.io/games-on-whales/wolf-den:stable
 ```
 
@@ -65,7 +65,7 @@ services:
     environment:
       - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
     volumes:
-      - /etc/wolf/wolf-den:/app/WolfLeash/
+      - /etc/wolf/wolf-den:/app/wolf-den/
       # Mount the Wolf socket from our custom volume
       - wolf-socket:/var/run/wolf
 
