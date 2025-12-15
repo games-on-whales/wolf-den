@@ -11,13 +11,11 @@ A web UI for managing Wolf
 > To enable the Wolf socket:
 >
 > 1. Set the `WOLF_SOCKET_PATH` environment variable in your Wolf container:
-     >
-     >    ```bash
+>    ```bash
 >    -e WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
 >    ```
 > 2. Mount the socket location to the host machine:
-     >
-     >    ```bash
+>    ```bash
 >    -v /var/run/wolf:/var/run/wolf
 >    ```
 > 3. Ensure the `wolf.sock` file is created inside the container at `/var/run/wolf/wolf.sock`.
