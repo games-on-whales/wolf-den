@@ -23,6 +23,7 @@
     </ItemGroup>
         
     <ItemGroup>
+      <Folder Include="DockerOverlay\etc\cont-shutdown.d\" />
       <Folder Include="wwwroot\lib\" />
     </ItemGroup>
           

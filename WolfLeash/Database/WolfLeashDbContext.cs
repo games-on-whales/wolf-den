@@ -23,7 +23,7 @@ public class WolfLeashDbContext(DbContextOptionsBuilder<WolfLeashDbContext>? bui
 
         var folder = Environment.SpecialFolder.LocalApplicationData;
         var path = Environment.GetFolderPath(folder);
-        var dbPath = Path.Join(path, "WolfLeash");
+        var dbPath = Path.Join(path, "wolf-den");
         
         if(!Directory.Exists(dbPath))
             Directory.CreateDirectory(dbPath);
