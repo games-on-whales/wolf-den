@@ -11,11 +11,11 @@ A web UI for managing Wolf
 > To enable the Wolf socket:
 >
 > 1. Set the `WOLF_SOCKET_PATH` environment variable in your Wolf container:
->    ```bash
+     >    ```bash
 >    -e WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
 >    ```
 > 2. Mount the socket location to the host machine:
->    ```bash
+     >    ```bash
 >    -v /var/run/wolf:/var/run/wolf
 >    ```
 > 3. Ensure the `wolf.sock` file is created inside the container at `/var/run/wolf/wolf.sock`.
@@ -47,8 +47,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /dev/:/dev/:rw
       - /run/udev:/run/udev:rw
-      # Mount the Wolf socket in our custom volume
-      - wolf-socket:/var/run/wolf
+      # Wolf will create the socket in your host under this path
+      - /var/run/wolf:/var/run/wolf
     device_cgroup_rules:
       - 'c 13:* rmw'
     devices:
@@ -66,9 +66,6 @@ services:
       - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
     volumes:
       - /etc/wolf/wolf-den:/app/wolf-den/
-      # Mount the Wolf socket from our custom volume
-      - wolf-socket:/var/run/wolf
-
-volumes:
-  wolf-socket:
+      # Mount the Wolf socket from the host
+      - /var/run/wolf:/var/run/wolf
 ```
