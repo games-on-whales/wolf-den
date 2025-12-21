@@ -8,8 +8,6 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WolfLeash/WolfLeash.csproj", "WolfLeash/"]
-COPY ["WolfApi/WolfApi.csproj", "WolfApi/"]
-COPY ["OpenApiGenerator/OpenApiGenerator.csproj", "OpenApiGenerator/"]
 RUN dotnet restore "WolfLeash/WolfLeash.csproj"
 COPY . .
 WORKDIR "/src/WolfLeash"
