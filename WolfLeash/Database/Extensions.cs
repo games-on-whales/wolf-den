@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NSwagWolfApi;
+using GamesOnWhales;
 using WolfLeash.Database.Model;
 
 namespace WolfLeash.Database;

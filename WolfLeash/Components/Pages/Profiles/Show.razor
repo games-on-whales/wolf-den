@@ -32,7 +32,7 @@ else
 
 @code {
     [Inject] protected EventLogger EventLogger { get; set; } = null!;
-    private List<NSwagWolfApi.Profile>? Profiles { get; set; } = null!;
+    private List<Profile>? Profiles { get; set; } = null!;
     private AddProfileModal _modal = null!;
     
     protected override async Task OnInitializedAsync()
@@ -46,7 +46,7 @@ else
         Api.ProfilesUpdatedEvent += OnProfilesUpdated;
     }
 
-    private async Task OnProfilesUpdated(object? caller, ICollection<NSwagWolfApi.Profile> profiles)
+    private async Task OnProfilesUpdated(object? caller, ICollection<Profile> profiles)
     {
         Profiles = profiles.ToList();
         await InvokeAsync(StateHasChanged);

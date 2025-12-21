@@ -8,7 +8,7 @@ namespace WolfLeash.Components.Classes;
 
 public static class AppExtensions
 {
-    public static async Task Delete(this NSwagWolfApi.App app, WolfApi.Api api, WolfLeashDbContext context)
+    public static async Task Delete(this GamesOnWhales.App app, GamesOnWhales.WolfApi api, WolfLeashDbContext context)
     {
         if (api.Profiles is null)
         {
@@ -42,7 +42,7 @@ public static class AppExtensions
     }
     
     [Pure]
-    public static bool Identical(this NSwagWolfApi.App first, NSwagWolfApi.App second)
+    public static bool Identical(this GamesOnWhales.App first, GamesOnWhales.App second)
     {
         return first.Title == second.Title &&
             first.Icon_png_path == second.Icon_png_path &&
@@ -56,7 +56,7 @@ public static class AppExtensions
             first.Runner.Ports.SequenceEqual(second.Runner.Ports);
     }
 
-    public static async Task Save(this NSwagWolfApi.App app, WolfLeashDbContext context)
+    public static async Task Save(this GamesOnWhales.App app, WolfLeashDbContext context)
     {
         var dbApp = app.Map(context);
         context.Apps.Add(dbApp);
@@ -70,7 +70,7 @@ public static class AppExtensions
         }
     }
 
-    public static DbApp Map(this NSwagWolfApi.App app, WolfLeashDbContext context)
+    public static DbApp Map(this GamesOnWhales.App app, WolfLeashDbContext context)
     {
         var dbApp = context.Apps
             .Include(a => a.Runner)

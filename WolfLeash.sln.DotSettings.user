@@ -47,4 +47,5 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
   &lt;Assembly Path="/home/sebastian/.dotnet/shared/Microsoft.NETCore.App/9.0.7/System.ComponentModel.Annotations.dll" /&gt;
   &lt;Assembly Path="/home/sebastian/.dotnet/packs/Microsoft.NETCore.App.Ref/9.0.7/ref/net9.0/System.ComponentModel.Annotations.dll" /&gt;
+  &lt;Assembly Path="/home/sebastian/.nuget/packages/gamesonwhales.wolf.net.bindings/0.0.1-alpha/lib/net9.0/GamesOnWhales.Wolf.Net.Bindings.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>

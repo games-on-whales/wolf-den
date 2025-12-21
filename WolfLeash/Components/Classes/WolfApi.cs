@@ -1,11 +1,10 @@
-using NSwagWolfApi;
+using GamesOnWhales;
 
 namespace WolfLeash.Components.Classes;
-using WolfApi;
 
-public class Api : WolfApi.Api
+public class Api : WolfApi
 {
-    public Api(ILogger<WolfApi.Api> logger, IConfiguration configuration) : base(logger, configuration) { }
+    public Api(ILogger<WolfApi> logger, IConfiguration configuration) : base(logger, configuration) { }
 
     private static Task Raise<TSource, TEventArgs>(Func<TSource, TEventArgs, Task>? handlers, TSource source, TEventArgs args)
     {
