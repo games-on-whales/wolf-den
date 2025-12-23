@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="GamesOnWhales.Wolf.Net.Bindings" Version="0.0.1-alpha" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
         <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
-        <ProjectReference Include="..\WolfApi\WolfApi.csproj" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11"/>

@@ -2,23 +2,26 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
 @using WolfLeash.Extensions
-@using App = NSwagWolfApi.App
+@using App = GamesOnWhales.App
 @inject ILogger<AddProfile> Logger
 @inject Api Api
 @inject WolfLeashDbContext Context
 @inject EventLogger Event
 
-<Offcanvas @ref="offcanvas" 
-           title="Select Cover">    
-    <BodyTemplate>
-        @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
-        {
-            <div class="form-group row mb-3">
-                <ImageSelector FilePath="@file" @bind-Value="Data!.IconPngPath" @bind-Value:after="() => offcanvas.HideAsync()" />
-            </div>
-        }
-    </BodyTemplate>
-</Offcanvas>
+@if(Directory.Exists("/etc/wolf/covers"))
+{
+    <Offcanvas @ref="offCanvas"
+               title="Select Cover">
+        <BodyTemplate>
+            @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
+            {
+                <div class="form-group row mb-3">
+                    <ImageSelector FilePath="@file" @bind-Value="Data!.IconPngPath" @bind-Value:after="OnHideOffCanvasClick"/>
+                </div>
+            }
+        </BodyTemplate>
+    </Offcanvas>
+}
 
 <h3>New App</h3>
 
@@ -36,7 +39,10 @@
             </div>
         </Tooltip>
         <ValidationMessage For="() => Data!.IconPngPath"/>
-        <Button Color="ButtonColor.Primary" @onclick="OnShowOffcanvasClick">Select Cover</Button>
+        @if(Directory.Exists("/etc/wolf/covers"))
+        {
+            <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select Cover</Button>
+        }
     </div>
 
     <h5>Runner Configuration:</h5>
@@ -83,9 +89,9 @@
 </div>
 
 @code {
-    private Offcanvas offcanvas = default!;
-    private async Task OnShowOffcanvasClick() => await offcanvas.ShowAsync();
-    private async Task OnHideOffcanvasClick() => await offcanvas.HideAsync();
+    private Offcanvas? offCanvas = null!;
+    private async Task OnShowOffCanvasClick() => await offCanvas?.ShowAsync();
+    private async Task OnHideOffCanvasClick() => await offCanvas?.HideAsync();
     
     [Parameter]
     public EventCallback OnValidSubmit { get; set; }

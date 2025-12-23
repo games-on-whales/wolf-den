@@ -1,5 +1,3 @@
-@using NSwagWolfApi
-@using NSwagWolfApi_App = NSwagWolfApi.App
 @inject Api Api
 @inject WolfLeashDbContext Context
 
@@ -10,7 +8,7 @@
                 <div class="row">
                     <div class="col">
                         <h4>Profile's Apps</h4>
-                        <SortableList TItem="NSwagWolfApi_App"
+                        <SortableList TItem="GamesOnWhales.App"
                                       Group="@Profile.Id"
                                       Handle=".bb-sortable-list-handle"
                                       Name="empList1"
@@ -29,7 +27,7 @@
                     </div>
                     <div class="col">
                         <h4>All Apps</h4>
-                        <SortableList TItem="NSwagWolfApi_App"
+                        <SortableList TItem="GamesOnWhales.App"
                                       Group="@Profile.Id"
                                       Handle=".bb-sortable-list-handle"
                                       Name="empList2"
@@ -57,8 +55,8 @@
     [Parameter, EditorRequired] public Profile Profile { get; set; }
     private Accordion appsAccordion = default!;
     
-    public List<NSwagWolfApi_App> profileApps = null!;
-    public List<NSwagWolfApi_App> allApps = null!;
+    public List<GamesOnWhales.App> profileApps = null!;
+    public List<GamesOnWhales.App> allApps = null!;
 
     protected override Task OnInitializedAsync()
     {

@@ -23,7 +23,7 @@ else
 
 @code {
     [Parameter, EditorRequired] public int ColumnSize { get; set; } = 7;
-    private List<NSwagWolfApi.App>? Apps { get; set; } = null;
+    private List<GamesOnWhales.App>? Apps { get; set; } = null;
     //private ConfirmDialog dialog = default!;
 
     protected override async Task OnInitializedAsync()
@@ -35,7 +35,7 @@ else
         Api.ProfilesUpdatedEvent += OnProfilesUpdated;
     }
 
-    private async Task OnProfilesUpdated(object caller, ICollection<NSwagWolfApi.Profile> profiles)
+    private async Task OnProfilesUpdated(object caller, ICollection<Profile> profiles)
     {
         Apps?.Clear();
         

@@ -2,10 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WolfLeash", "WolfLeash/WolfLeash.csproj", "{64FD77F9-B48E-4659-B9CE-C9527BCEBB57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApiGenerator", "OpenApiGenerator\OpenApiGenerator.csproj", "{07561698-5F2E-4256-9CEC-286D9A0B96EC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WolfApi", "WolfApi\WolfApi.csproj", "{DF29D3CA-F662-4AC6-97A8-833E55F07D15}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A8A0A546-CFEE-4B32-97BE-0C4C8B5A9703}"
 	ProjectSection(SolutionItems) = preProject
 		Dockerfile = Dockerfile
@@ -23,13 +19,5 @@ Global
 		{64FD77F9-B48E-4659-B9CE-C9527BCEBB57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64FD77F9-B48E-4659-B9CE-C9527BCEBB57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64FD77F9-B48E-4659-B9CE-C9527BCEBB57}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07561698-5F2E-4256-9CEC-286D9A0B96EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07561698-5F2E-4256-9CEC-286D9A0B96EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07561698-5F2E-4256-9CEC-286D9A0B96EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07561698-5F2E-4256-9CEC-286D9A0B96EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF29D3CA-F662-4AC6-97A8-833E55F07D15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF29D3CA-F662-4AC6-97A8-833E55F07D15}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF29D3CA-F662-4AC6-97A8-833E55F07D15}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF29D3CA-F662-4AC6-97A8-833E55F07D15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

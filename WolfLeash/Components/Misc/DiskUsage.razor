@@ -1,5 +1,4 @@
 @using System.Diagnostics
-@using NSwagDocker
 @using WolfLeash.Components.Classes
 @inject Api Api
 @inject ColorGenerator colorsGen
@@ -28,14 +27,14 @@
             .Select(t => ($"{t.Name}", t.Item2))
             .ToList() ?? [];
 
-        Api.DockerApi.ReadResponseAsString = true;
+        Api.GeneratedClient.ReadResponseAsString = true;
         
         var tasks = Api.Profiles?
             .SelectMany(p => p.Apps)
             .Select(a => a.Runner.Image)
             .Distinct()
             .Where(s => s is not null && s != "")
-            .Select(s => Api.DockerApi.ImageInspectAsync(s)) ?? [];
+            .Select(s => Api.GeneratedClient.ImageInspectAsync(s)) ?? [];
 
         List<(string, double?)> topLayer =
         [

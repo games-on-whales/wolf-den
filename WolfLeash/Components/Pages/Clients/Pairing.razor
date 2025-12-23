@@ -1,6 +1,5 @@
 @page "/Clients/Pairing"
 @implements IDisposable
-@using NSwagWolfApi
 @using WolfLeash.Components.Pages.Clients.SubComponent
 @inject Api Api
 
@@ -44,7 +43,7 @@ else
 
     private async Task GetPairingRequests()
     {
-        var result = await Api.WolfApi.PendingAsync();
+        var result = await Api.GeneratedClient.PendingAsync();
         PairRequests = result?.Requests.ToList() ?? [];
     }
 

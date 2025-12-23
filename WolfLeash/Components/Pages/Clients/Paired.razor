@@ -1,5 +1,4 @@
 @page "/Clients/Paired"
-@using NSwagWolfApi
 @using WolfLeash.Components.Pages.Clients.SubComponent
 @inject Api Api
 @inject WolfLeashDbContext Context
@@ -35,7 +34,7 @@ else
 
     private async Task UpdateDisplayedClients()
     {
-        var result = await Api.WolfApi.ClientsAsync();
+        var result = await Api.GeneratedClient.ClientsAsync();
         ApiClients = result?.Clients ?? [];
 
         foreach (var apiClient in ApiClients)
@@ -67,7 +66,7 @@ else
 
     private async Task UnpairClient(Client client)
     {
-        await Api.WolfApi.Client2Async(new UnpairClientRequest()
+        await Api.GeneratedClient.Client2Async(new UnpairClientRequest()
         {
             Client_id = client.Id
         });

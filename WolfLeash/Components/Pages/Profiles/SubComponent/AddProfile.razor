@@ -66,13 +66,13 @@
 
     private async Task Submit()
     {
-        var newProfile = new NSwagWolfApi.Profile
+        var newProfile = new Profile
         {
             Name = Data!.Name,
             Id = Guid.NewGuid().ToBase64(),
             Icon_png_path = Data!.IconPngPath,
             Pin = _showPinInput ? Data!.Pin : null,
-            Apps = Array.Empty<NSwagWolfApi.App>()
+            Apps = Array.Empty<GamesOnWhales.App>()
         };
 
         await Api.AddProfile(newProfile);

@@ -1,10 +1,10 @@
 using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
-using WolfApi;
 using WolfLeash.Components;
 using WolfLeash.Components.Classes;
 using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
+using GamesOnWhales.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("WOLF_");
