@@ -40,7 +40,8 @@ apt-get install -y --no-install-recommends \
     wget \
     curl \
     jq \
-    socat
+    socat \
+    netcat-openbsd
 
 echo "**** Install gosu ****"
 wget --progress=dot:giga \
