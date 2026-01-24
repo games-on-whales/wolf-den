@@ -2,6 +2,8 @@
 @inject Api Api
 @inject WolfLeashDbContext Context
 
+<ConfirmDialog @ref="dialog" />
+
 @if (Profiles == null)
 {
     <Spinner />
@@ -12,7 +14,7 @@ else
     {
         <Badge Color="BadgeColor.Success" VisuallyHiddenText="">
             @profile.Name
-            <a @onclick="@(_ => RemoveAppFromProfile(profile))">
+            <a @onclick="@(_ => ConfirmAppDeletion(profile))">
                 <Icon Name="IconName.XCircle"/>
             </a>
         </Badge>
@@ -24,6 +26,21 @@ else
     [Parameter, EditorRequired] public App App { get; set; } = null!;
     public List<Profile>? Profiles = null;
 
+    private ConfirmDialog dialog = default!;
+    
+    private async Task ConfirmAppDeletion(Profile profile)
+    {
+        var confirmation = await dialog.ShowAsync(
+            title: "Are you sure you want to Remove the App from the Profile?",
+            //message1: "This will delete the App from all Profiles using it, and removes all tracking about it.",
+            message1: "Do you want to proceed?");
+
+        if (confirmation)
+        {
+            await RemoveAppFromProfile(profile);
+        }
+    }
+    
     private async Task RemoveAppFromProfile(Profile profile)
     {
         EventLogger.LogEvent(new ToastMessage(ToastType.Warning, "", "Profile edited", $"{DateTime.Now}", $"Removed {App.Title} from {profile.Name}"));
