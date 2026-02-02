@@ -3,9 +3,6 @@
 @using System.Text.RegularExpressions
 @using WolfLeash.Extensions
 @using App = GamesOnWhales.App
-@inject ILogger<AddProfile> Logger
-@inject Api Api
-@inject WolfLeashDbContext Context
 @inject EventLogger Event
 
 @if(Directory.Exists("/etc/wolf/covers"))
@@ -22,8 +19,6 @@
         </BodyTemplate>
     </Offcanvas>
 }
-
-<h3>New App</h3>
 
 <div style="width: 500px">
 <EditForm EditContext="editContext" OnValidSubmit="Submit" xmlns="http://www.w3.org/1999/html">
@@ -94,7 +89,10 @@
     private async Task OnHideOffCanvasClick() => await offCanvas?.HideAsync();
     
     [Parameter]
-    public EventCallback OnValidSubmit { get; set; }
+    public EventCallback<App> OnValidSubmit { get; set; }
+    
+    [Parameter]
+    public App? AppToEdit { get; set; }
 
     [SupplyParameterFromForm]
     public AppFormData? Data { get; set; }
@@ -107,6 +105,25 @@
         editContext = new(Data);
         editContext.OnValidationRequested += HandleValidationRequested;
         messageStore = new(editContext);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(!firstRender) return;
+        if(AppToEdit is null || Data is null) return;
+        
+        // Map App to FormData
+        Data.Title = AppToEdit.Title;
+        Data.Id = AppToEdit.Id;
+        Data.IconPngPath = AppToEdit.Icon_png_path;
+        Data.RunnerName = AppToEdit.Runner.Name;
+        Data.Image = AppToEdit.Runner.Image;
+        Data.BaseCreateJson = AppToEdit.Runner.Base_create_json;
+        Env.Values = AppToEdit.Runner.Env?.ToList() ?? [];
+        Ports.Values = AppToEdit.Runner.Ports?.ToList() ?? [];
+        Mounts.Values = AppToEdit.Runner.Mounts?.ToList() ?? [];
+        Devices.Values = AppToEdit.Runner.Devices?.ToList() ?? [];
+        StateHasChanged();
     }
 
     private void HandleValidationRequested(object? sender,
@@ -134,6 +151,7 @@
     {
         var errors = new List<string>();
 
+        //TODO: Optimize Regex to include the /udp and /tcp suffix for port declaration and fail on wrong suffixes.
         if (!Regex.IsMatch(s, "^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])"))
             errors.Add("Port should be formated (0-65535):(0-65535)");
 
@@ -159,7 +177,7 @@
     private static List<string> DevicesValidator(string s)
     {
         var errors = new List<string>();
-
+        //TODO: Add validator for Devices field.
 
 
         return errors;
@@ -171,8 +189,17 @@
         var newApp = new App
         {
             Title = Data!.Title,
-            Id = Guid.NewGuid().ToBase64(),
+            Id = Data!.Id ?? Guid.NewGuid().ToBase64(),
             Icon_png_path = Data!.IconPngPath,
+            H264_gst_pipeline = "",
+            Hevc_gst_pipeline = "",
+            Av1_gst_pipeline = "",
+            Opus_gst_pipeline = "",
+            Render_node = "",
+            Support_hdr = false,
+            Start_virtual_compositor = true,
+            Start_audio_server = true,
+            
             // Render_node = Data!.Render_node,
             // Start_virtual_compositor = Data!.Start_virtual_compositor,
             // Start_audio_server = Data!.Start_audio_server,
@@ -189,24 +216,18 @@
                 Base_create_json = Data!.BaseCreateJson
             }
         };
+        
+        await OnValidSubmit.InvokeAsync(newApp);
+    }
 
-        Context.Apps.Add(newApp);
-
-        try
-        {
-            await Context.SaveChangesAsync();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
+    public void ResetForm()
+    {
         Event.LogEvent(new ToastMessage(
             ToastType.Info,
             "",
             "Information",
             $"{DateTime.Now}",
-            $"Added new profile: {newApp.Title}."));
+            $"Added new App."));
 
         // Reset form
         Data = new();
@@ -214,8 +235,6 @@
         Ports.Values = [];
         Mounts.Values = [];
         Devices.Values = [];
-
-        await OnValidSubmit.InvokeAsync();
     }
 
     public class AppFormData
@@ -223,6 +242,7 @@
         [Required(ErrorMessage = "Title is Required", AllowEmptyStrings = false)]
         [MinLength(3, ErrorMessage = "Title should be minimum 3 characters long")]
         public string Title { get; set; } = null!;
+        public string? Id { get; set; } = null;
         public string IconPngPath { get; set; } = null!;
         // public bool Start_virtual_compositor { get; set; } = true;
         // public bool Start_audio_server { get; set; } = true;
