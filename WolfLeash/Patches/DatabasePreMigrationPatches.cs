@@ -11,9 +11,9 @@ public class DatabasePreMigrationPatches
 
     private void PatchFor_EnableCascadingDeleteForRunner()
     {
-        var clientsExists = _directAccess
-            .SelectQuery("SELECT * FROM __EFMigrationsHistory WHERE MigrationId='20251118200700_AddedClients';");
-        if (clientsExists.Rows.Count <= 0) return; //Clients not yet implemented in this version.
+        var appsExist = _directAccess
+            .SelectQuery("SELECT * FROM __EFMigrationsHistory WHERE MigrationId='20251115084840_InitialCreate';");
+        if (appsExist.Rows.Count <= 0) return; //Apps not yet implemented in this version, Basically a new installation.
         
         var data = _directAccess
             .SelectQuery("SELECT * FROM __EFMigrationsHistory WHERE MigrationId='20260202213438_EnableCascadingDeleteForRunner';");
