@@ -1,0 +1,78 @@
+@inject Api Api
+@inject WolfLeashDbContext Context
+@inject NavigationManager NavigationManager
+
+@page "/Apps/Edit"
+
+<h3>Edit App</h3>
+
+@if (_app is not null)
+{
+    <AppForm @ref="_addApp" OnValidSubmit="OnSubmit" AppToEdit="@_app" />
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public string? AppId { get; set; }
+    private GamesOnWhales.App? _app;
+    
+    AppForm? _addApp;
+
+    private async Task OnSubmit(GamesOnWhales.App modifiedApp)
+    {
+        var profiles = await Api.GetProfilesAsync();
+        
+        foreach (var profile in profiles.Where(p => p.Apps.Any(a => a.Id == modifiedApp.Id)))
+        {
+            var apps = profile.Apps.Where(a => a.Id != _app.Id);
+            profile.Apps = apps.Append(modifiedApp).ToList();
+            await Api.UpdateProfile(profile.Id, profile);
+        }
+
+        if (!Context.Apps.Any(a => a.AppId == modifiedApp.Id))
+        {
+            NavigationManager.NavigateTo("/apps/show");
+            return;
+        }
+        
+        var oldApp = _app.Map(Context);
+        oldApp.Title = modifiedApp.Title;
+        oldApp.AppId = modifiedApp.Id;
+        oldApp.IconPngPath = modifiedApp.Icon_png_path;
+        oldApp.Runner.Image = modifiedApp.Runner.Image;
+        oldApp.Runner.Name = modifiedApp.Runner.Name;
+        oldApp.Runner.Env = modifiedApp.Runner.Env;
+        oldApp.Runner.Ports = modifiedApp.Runner.Ports;
+        oldApp.Runner.Mounts = modifiedApp.Runner.Mounts;
+        oldApp.Runner.Devices = modifiedApp.Runner.Devices;
+        oldApp.Runner.BaseCreateJson = modifiedApp.Runner.Base_create_json;
+        
+        Context.Apps.Update(oldApp);
+        try
+        {
+            await Context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        NavigationManager.NavigateTo("/apps/show");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profiles = await Api.GetProfilesAsync();
+        _app = profiles
+            .SelectMany(p => p.Apps)
+            .FirstOrDefault(a => a.Id == AppId);
+        
+        if(_app is not null) return;
+
+        _app = Context.Apps
+            .Include(a => a.Runner)
+            .FirstOrDefault(a => a.AppId == AppId)?
+            .ToDto();
+    }
+}

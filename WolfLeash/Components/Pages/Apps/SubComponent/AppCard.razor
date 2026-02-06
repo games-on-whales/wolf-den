@@ -6,7 +6,10 @@
 <Card Class="mb-4" Style="width:18rem;">
     <CardHeader>
         <div style="display:flex; flex-direction: row; justify-content: space-between; align-items: center">
-            <a>@App.Title</a>
+            <div>
+                <a href="/apps/edit?AppId=@App.Id"><Icon Name="IconName.PencilSquare" Color="IconColor.Secondary"/></a>
+                <a>@App.Title</a>
+            </div>
             <a @onclick="ConfirmAppDeletion"><Icon Name="IconName.Trash" Color="IconColor.Danger"/></a>
         </div>
     </CardHeader>

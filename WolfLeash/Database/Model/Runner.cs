@@ -7,6 +7,9 @@ public class Runner
     [Key]
     public int Id { get; set; }
 
+    public int DbAppId { get; set; }
+    public DbApp DbApp { get; set; }
+    
     [Required, StringLength(64)]
     public string Name { get; set; } = null!;
     [Required, StringLength(128)]

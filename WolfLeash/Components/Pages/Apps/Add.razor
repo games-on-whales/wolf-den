@@ -1,8 +1,27 @@
+@inject WolfLeashDbContext Context
 @page "/Apps/Add"
 
-<AddApp />
+<h3>New App</h3>
+<AppForm @ref="_addApp" OnValidSubmit="OnSubmit" />
 
 @code
 {
+    AppForm? _addApp;
+    
+    private async Task OnSubmit(GamesOnWhales.App app)
+    {
+        Context.Apps.Add(app);
 
+        try
+        {
+            await Context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        
+        Console.WriteLine(_addApp is null);
+        _addApp?.ResetForm();
+    }
 }

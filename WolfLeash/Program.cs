@@ -5,6 +5,7 @@ using WolfLeash.Components.Classes;
 using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
+using WolfLeash.Patches;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("WOLF_");
@@ -18,6 +19,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddLogging(configure => configure.AddConsole());
 builder.Services.AddTransient<ColorGenerator>();
 builder.Services.AddWolfApi<Api>();
+
+var migrationPatcher = new DatabasePreMigrationPatches();
+migrationPatcher.Execute();
+
 builder.Services.AddDbContext<WolfLeashDbContext>();
 
 builder.Services.AddBlazorBootstrap();
