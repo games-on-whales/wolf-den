@@ -1,5 +1,4 @@
 @page "/Clients/Paired"
-@using WolfLeash.Components.Pages.Clients.SubComponent
 @inject Api Api
 @inject WolfLeashDbContext Context
 
@@ -13,16 +12,24 @@ else
     <Accordion>
     @foreach (var client in Clients)
     {
+        Func<string, Task> callback = async (s) => await OnSave(client, s); 
         <AccordionItem Name="@client.Id">
-        <TitleTemplate>
-            <AccordionTitleEdit Client="@client" />
-        </TitleTemplate>
-        <Content>
-            @*<ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)" />*@
-            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-                <Button @onclick="() => UnpairClient(client)" Color="ButtonColor.Danger">Unpair</Button>
-            </div>
-        </Content>
+            <TitleTemplate>
+                @if (!string.IsNullOrEmpty(client.Alias))
+                {
+                    <AccordionTitleEdit Text="@client.Alias" Placeholder="@client.Id" OnSubmit="@callback"/>
+                }
+                else
+                {
+                    <AccordionTitleEdit Text="@client.Id" Placeholder="@client.Id" OnSubmit="@callback"/>
+                }
+            </TitleTemplate>
+            <Content>
+                @*<ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)" />*@
+                <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                    <Button @onclick="() => UnpairClient(client)" Color="ButtonColor.Danger">Unpair</Button>
+                </div>
+            </Content>
         </AccordionItem>
     }
     </Accordion>
@@ -32,6 +39,13 @@ else
     private List<Client>? Clients { get; set; }
     private ICollection<PairedClient> ApiClients { get; set; } = null!;
 
+    private async Task OnSave(Client client, string newAlias)
+    {
+        client.Alias = newAlias;
+        Context.Clients.Update(client);
+        await Context.SaveChangesAsync();
+    }
+    
     private async Task UpdateDisplayedClients()
     {
         var result = await Api.GeneratedClient.ClientsAsync();
