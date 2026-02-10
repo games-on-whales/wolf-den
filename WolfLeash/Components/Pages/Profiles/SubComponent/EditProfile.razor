@@ -1,4 +1,3 @@
-@using WolfLeash.Components.Classes
 @inject Api Api
 @inject WolfLeashDbContext Context
 
@@ -16,6 +15,7 @@
     
     [Parameter, EditorRequired] public EventCallback OnProfilesModified { get; set; }
     [Parameter, EditorRequired] public Profile Profile { get; set; }
+    [Parameter] public EventCallback<Profile> ProfileChanged { get; set; }
     
     [Inject] protected EventLogger EventLogger { get; set; } = default!;
 

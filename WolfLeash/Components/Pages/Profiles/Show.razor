@@ -21,9 +21,14 @@ else
     <Accordion>
         @foreach (var profile in Profiles)
         {
-            <AccordionItem Title="@profile.Name" Name="@profile.Name">
+            var localProfile = profile;
+            Action<string> callback = (s) => localProfile.Name = s; ;
+            <AccordionItem Name="@localProfile.Name">
+                <TitleTemplate>
+                    <AccordionTitleEdit Text="@localProfile.Name" Placeholder="@localProfile.Name" OnSubmit="@callback"/>
+                </TitleTemplate>
                 <Content>
-                    <EditProfile Profile="@profile" OnProfilesModified="OnProfilesModified"></EditProfile>
+                    <EditProfile @bind-Profile="@localProfile" OnProfilesModified="OnProfilesModified" />
                 </Content>
             </AccordionItem>
         }
@@ -45,7 +50,7 @@ else
         Profiles = Api.Profiles.ToList();
         Api.ProfilesUpdatedEvent += OnProfilesUpdated;
     }
-
+    
     private async Task OnProfilesUpdated(object? caller, ICollection<Profile> profiles)
     {
         Profiles = profiles.ToList();
