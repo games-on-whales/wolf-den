@@ -22,7 +22,7 @@ else
         @foreach (var profile in Profiles)
         {
             var localProfile = profile;
-            Action<string> callback = (s) => localProfile.Name = s; ;
+            Action<string> callback = (s) => localProfile.Name = string.IsNullOrEmpty(s) ? localProfile.Name : s; ;
             <AccordionItem Name="@localProfile.Name">
                 <TitleTemplate>
                     <AccordionTitleEdit Text="@localProfile.Name" Placeholder="@localProfile.Name" OnSubmit="@callback"/>
@@ -53,6 +53,8 @@ else
     
     private async Task OnProfilesUpdated(object? caller, ICollection<Profile> profiles)
     {
+        Profiles = null;
+        await InvokeAsync(StateHasChanged);
         Profiles = profiles.ToList();
         await InvokeAsync(StateHasChanged);
     }
