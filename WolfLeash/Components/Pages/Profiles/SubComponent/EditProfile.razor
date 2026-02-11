@@ -2,9 +2,10 @@
 @inject WolfLeashDbContext Context
 
 <ConfirmDialog @ref="dialog" />
-
-<EditProfileApps Profile="@Profile" @ref="_profileApps"></EditProfileApps>
-
+<div class="form-group row mb-3">
+    <EditProfileApps Profile="@Profile" @ref="_profileApps"></EditProfileApps>
+    <EditProfileSettings @bind-Profile="@Profile" />
+</div>
 <br>
 <Button Color="ButtonColor.Success" @onclick="@OnSaveClicked">Save</Button>
 <Button Color="ButtonColor.Danger" @onclick="@OnDeleteClicked">Delete</Button>
@@ -41,6 +42,8 @@
                 $"Updated Profile: {Profile.Name}."
             )
         );
+        
+        await OnProfilesModified.InvokeAsync();
     }
     
     private async Task OnDeleteClicked()

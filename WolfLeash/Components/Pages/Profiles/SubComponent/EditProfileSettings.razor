@@ -1,0 +1,91 @@
+@if(Directory.Exists("/etc/wolf/covers"))
+{
+    <Offcanvas @ref="offCanvas"
+               title="Select Cover">
+        <BodyTemplate>
+            @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
+            {
+                <div class="form-group row mb-3">
+                    <ImageSelector FilePath="@file" @bind-Value="Profile!.Icon_png_path" @bind-Value:after="OnHideOffCanvasClick"/>
+                </div>
+            }
+        </BodyTemplate>
+    </Offcanvas>
+}
+
+<Accordion>
+    <AccordionItem Name="Settings" Title="Settings">
+        <Content>
+            <div style="width: 500px">
+            <div class="form-group row mb-3">
+                <Tooltip Title="Icons can be links to a png, or png files in /etc/wolf/covers">
+                    <div style="display:flex; flex-direction: row; justify-content: space-between; align-items: center">
+                        <TextInput @bind-Value="Profile!.Icon_png_path" Placeholder="Icon"/>
+                        @if (Directory.Exists("/etc/wolf/covers"))
+                        {
+                            <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select</Button>
+                        }
+                    </div>
+                </Tooltip>
+                <!--<ValidationMessage For="() => Profile!.Icon_png_path"/>-->
+                <div class="form-group row mb-3">
+                    <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                        <a>Enable Pin:</a>
+                        <InputCheckbox @bind-Value="HasPin"/>
+                    </div>
+
+                    @if (HasPin)
+                    {
+                        <TextInput @bind-Value="PinString" Placeholder="Pin"/>
+                        <!--<ValidationMessage For="() => PinString"/>-->
+                    }
+                </div>
+            </div>
+            </div>
+        </Content>
+    </AccordionItem>
+</Accordion>
+
+@code {
+    private Offcanvas? offCanvas = null!;
+    private async Task OnShowOffCanvasClick() => await offCanvas?.ShowAsync();
+    private async Task OnHideOffCanvasClick() => await offCanvas?.HideAsync();
+    
+    private bool _showPinInput = false;
+    private string _pinString = "";
+
+    public string PinString
+    {
+        get => _pinString;
+        set
+        {
+            _pinString = value;
+            Profile.Pin = _pinString.ToCharArray().Select(c => c - '0').ToList();
+        }
+    }
+
+    public bool HasPin
+    {
+        get => _showPinInput;
+        set
+        {
+            _showPinInput = value;
+            if (!value)
+            {
+                Profile.Pin = Array.Empty<int>();
+            }
+        }
+    }
+    
+    [Parameter] public Profile Profile { get; set; }
+    [Parameter] public EventCallback<Profile> ProfileChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Profile.Pin is not null && Profile.Pin.Count > 0)
+        {
+            _showPinInput = true;
+            _pinString = Profile.Pin.Select(i => $"{i}").Aggregate((a, b) => $"{a}{b}");
+        }
+    }
+}
