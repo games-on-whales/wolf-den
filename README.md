@@ -68,4 +68,6 @@ services:
       - /etc/wolf/wolf-den:/app/wolf-den/
       # Mount the Wolf socket from the host
       - /var/run/wolf:/var/run/wolf
+      # Optional, enables Icon/Cover picker for Profiles/Apps.
+      - /etc/wolf/covers:/etc/wolf/covers
 ```
