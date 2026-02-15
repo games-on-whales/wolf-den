@@ -1,28 +1,59 @@
 @using System.Text.RegularExpressions
-<Dropdown Color="DropdownColor.Secondary">
-    <DropdownToggleButton>Render Device</DropdownToggleButton>
-    <DropdownMenu>
-        <DropdownHeader>Render Devices</DropdownHeader>
-        @foreach (var device in RenderDevices)
-        {
-            <DropdownItem Type="DropdownItemType.Button" >@device</DropdownItem>
-        }
-    </DropdownMenu>
-</Dropdown>
+@if(IsDisabled)
+{
+    <Tooltip Title="Mount /dev/dri/ to enable the Render Node Dropdown.">
+        <Dropdown Color="DropdownColor.Secondary" Disabled="true">
+            <DropdownToggleButton>Render Device</DropdownToggleButton>
+            <DropdownMenu>
+                <DropdownHeader>Render Devices</DropdownHeader>
+            </DropdownMenu>
+        </Dropdown>
+    </Tooltip>
+}
+else
+{
+    <Dropdown Color="DropdownColor.Secondary" Disabled="false">
+        <DropdownToggleButton>Render Device</DropdownToggleButton>
+        <DropdownMenu>
+            <DropdownHeader>Render Devices</DropdownHeader>
+            @foreach (var device in RenderDevices)
+            {
+                <DropdownItem Type="DropdownItemType.Button"
+                              @onclick="@(() => OnItemSelected(device))">@device</DropdownItem>
+            }
+        </DropdownMenu>
+    </Dropdown>
+}
+
 
 @code {
     private List<string> RenderDevices { get; set; } = [];
+    public bool IsDisabled { get; set; } = false;
+    [Parameter] public string Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private void OnItemSelected(string item)
+    {
+        Value = item;
+        ValueChanged.InvokeAsync(Value);
+    }
 
     protected override void OnInitialized()
     {
-         var files = Directory.GetFiles("/dev/dri/");
-         foreach (var file in files)
-         {
-             // FileSystemInfo.Unix
-             // File.Get(Path.Combine("/dev/dri/", file))
-             if(Regex.IsMatch(file, ".*?/renderD[0-9]+"))
-                 RenderDevices.Add(file);
-         }
-    }
+        if (!Path.Exists("/dev/dri/"))
+        {
+            IsDisabled = true;
+            if(string.IsNullOrEmpty(Value))
+                OnItemSelected("/dev/dri/renderD128");
+            return;
+        }
+        
+        RenderDevices = Directory.GetFiles("/dev/dri/")
+            .Where(f => Regex.IsMatch(f, ".*?/renderD[0-9]+"))
+            .ToList();
 
+        if (RenderDevices.Count <= 0) return;
+        if(string.IsNullOrEmpty(Value))
+            OnItemSelected(RenderDevices.First());
+    }
 }

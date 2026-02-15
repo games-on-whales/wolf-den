@@ -55,6 +55,25 @@
             <AccordionItem Title="Advanced Options">
                 <Content>
                     <div class="form-group row mb-3">
+                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                            <a>Start Virtual Compositor</a>
+                            <CheckboxInput @bind-Value="Data!.Start_virtual_compositor"/>
+                        </div>
+                    </div>
+                    <div class="form-group row mb-3">
+                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                            <a>Start Audio Server</a>
+                            <CheckboxInput @bind-Value="Data!.Start_audio_server"/>
+                        </div>
+                    </div>
+                    <div class="form-group row mb-3">
+                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                            <TextInput @bind-Value="Data!.Render_node" Placeholder="Render Node"/>
+                            <ValidationMessage For="() => Data!.Render_node"/>
+                            <RenderDeviceDropdown @bind-Value="@Data!.Render_node"/>
+                        </div>
+                    </div>
+                    <div class="form-group row mb-3">
                         <TextArrayInput @ref="@Env" Validator="@EnvValidator" DefaultValues="@(["RUN_SWAY=true", "GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*"])" Placeholder="Env"/>
                     </div>
                     <div class="form-group row mb-3">
@@ -64,7 +83,7 @@
                         <TextArrayInput @ref="@Mounts" Validator="@MountsValidator" Placeholder="Mounts"/>
                     </div>
                     <div class="form-group row mb-3">
-                        <TextArrayInput @ref="@Devices" Validator="@DevicesValidator" Placeholder="Devices" />
+                        <TextArrayInput @ref="@Devices" Validator="@DevicesValidator" Placeholder="Devices"/>
                     </div>
 
                     <div class="form-group row mb-3">
@@ -195,14 +214,12 @@
             Hevc_gst_pipeline = "",
             Av1_gst_pipeline = "",
             Opus_gst_pipeline = "",
-            Render_node = "",
+            //Render_node = "undefined",
             Support_hdr = false,
-            Start_virtual_compositor = true,
-            Start_audio_server = true,
             
-            // Render_node = Data!.Render_node,
-            // Start_virtual_compositor = Data!.Start_virtual_compositor,
-            // Start_audio_server = Data!.Start_audio_server,
+            Render_node = Data!.Render_node,
+            Start_virtual_compositor = Data!.Start_virtual_compositor,
+            Start_audio_server = Data!.Start_audio_server,
             // Support_hdr = Data!.Support_hdr,
             Runner = new()
             {
@@ -244,10 +261,10 @@
         public string Title { get; set; } = null!;
         public string? Id { get; set; } = null;
         public string IconPngPath { get; set; } = null!;
-        // public bool Start_virtual_compositor { get; set; } = true;
-        // public bool Start_audio_server { get; set; } = true;
+        public bool Start_virtual_compositor { get; set; } = true;
+        public bool Start_audio_server { get; set; } = true;
         // public bool Support_hdr { get; set; } = false;
-        // public string Render_node { get; set; }
+        public string Render_node { get; set; }
         //
         // public string H264_gst_pipeline { get; set; }
         // public string Hevc_gst_pipeline { get; set; }
