@@ -9,6 +9,7 @@
     <h3>Profiles</h3>
     <Button Color="ButtonColor.Primary" @onclick="AddNewProfile">Add Profile</Button>
 </div>
+<br>
 
 @if (Profiles is null)
 {
@@ -21,16 +22,7 @@ else
     <Accordion>
         @foreach (var profile in Profiles)
         {
-            var localProfile = profile;
-            Action<string> callback = (s) => localProfile.Name = string.IsNullOrEmpty(s) ? localProfile.Name : s; ;
-            <AccordionItem Name="@localProfile.Name">
-                <TitleTemplate>
-                    <AccordionTitleEdit Text="@localProfile.Name" Placeholder="@localProfile.Name" OnSubmit="@callback"/>
-                </TitleTemplate>
-                <Content>
-                    <EditProfile @bind-Profile="@localProfile" OnProfilesModified="OnProfilesModified" />
-                </Content>
-            </AccordionItem>
+            <ProfileAccordionItem Profile="@profile" />
         }
     </Accordion>
 }

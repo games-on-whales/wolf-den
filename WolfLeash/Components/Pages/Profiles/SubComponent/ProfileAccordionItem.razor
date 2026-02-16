@@ -1,0 +1,237 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using App = GamesOnWhales.App
+@inject Api Api
+@inject WolfLeashDbContext Context
+
+<ConfirmDialog @ref="_dialog" />
+
+@if(Directory.Exists("/etc/wolf/covers"))
+{
+    <Offcanvas @ref="_offCanvas"
+               title="Select Cover">
+        <BodyTemplate>
+            @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
+            {
+                <div class="form-group row mb-3">
+                    <ImageSelector FilePath="@file" @bind-Value="_profileFormData!.IconPngPath" @bind-Value:after="OnHideOffCanvasClick"/>
+                </div>
+            }
+        </BodyTemplate>
+    </Offcanvas>
+}
+
+<EditForm EditContext="_editContext" OnValidSubmit="Submit" xmlns="http://www.w3.org/1999/html" @onkeydown="HandleKeyDown">
+    <DataAnnotationsValidator />
+    <AccordionItem Name="@_profileFormData.Id">
+        <TitleTemplate>
+            <AccordionTitleEdit @bind-Text="@_profileFormData.Name" Placeholder="@_profileFormData.Name"/>
+            <ValidationMessage For="() => _profileFormData.Name"/>
+        </TitleTemplate>
+        <Content>
+            <Accordion @ref="subMenuAccordion" OnShowing="OnSubmenuAccordionShowing">
+                <AppsAccordionItem @ref="_appsAccordion" ProfileId="@_profileFormData.Id" Apps="@_profileFormData.Apps.ToList()" Parent="this"/>
+                <AccordionItem Name="Settings" Title="Settings">
+                    <Content>
+                        <div class="form-group row mb-3" style="width: 500px">
+                            <Tooltip Title="Icons can be links to a png, or png files in /etc/wolf/covers">
+                                <div style="display:flex; flex-direction: row; justify-content: space-between; align-items: center">
+                                    <TextInput @bind-Value="_profileFormData!.IconPngPath" Placeholder="Icon"/>
+                                    <Button Color="ButtonColor.Primary"
+                                            @onclick="OnShowOffCanvasClick"
+                                            Disabled="@(!Directory.Exists("/etc/wolf/covers"))">
+                                        Select
+                                    </Button>
+                                </div>
+                            </Tooltip>
+                            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                                <a>Has Pin</a><CheckboxInput @bind-Value="_profileFormData.HasPin"/>
+                            </div>
+                            @if (_profileFormData.HasPin)
+                            {
+                                <div style="display:flex; flex-direction: row; justify-content: space-between; align-items: center">
+                                    <TextInput @bind-Value="_profileFormData.Pin" Placeholder="Pin"/>
+                                </div>
+                                <ValidationMessage For="() => _profileFormData.Pin"/>
+                            }
+                        </div>
+                    </Content>
+                </AccordionItem>
+            </Accordion>
+            <br>
+            <Button Type="ButtonType.Submit" Color="ButtonColor.Success">Save</Button>
+            <Button Color="ButtonColor.Danger" @onclick="Delete">Delete</Button>
+        </Content>
+    </AccordionItem>
+</EditForm>
+
+@code {
+    private Offcanvas? _offCanvas = null!;
+    private ConfirmDialog _dialog = null!;
+    private AppsAccordionItem _appsAccordion = null!;
+    private async Task OnShowOffCanvasClick() => await _offCanvas?.ShowAsync()!;
+    private async Task OnHideOffCanvasClick() => await _offCanvas?.HideAsync()!;
+    private Accordion subMenuAccordion = null!;
+    public Action? AppsAccordionShowing { get; set; } = null!;
+
+    [Inject] protected EventLogger EventLogger { get; set; } = default!;
+    [Parameter, EditorRequired] public Profile Profile { get; set; }
+    EditContext _editContext = null!;
+    ProfileFormData _profileFormData = null!;
+    private ValidationMessageStore _messageStore = null!;
+
+    protected override Task OnInitializedAsync()
+    {
+        _profileFormData = new ProfileFormData()
+        {
+            Name = Profile.Name,
+            Id = Profile.Id,
+            IconPngPath = Profile.Icon_png_path,
+            HasPin = Profile.Pin is not null,
+            Apps = Profile.Apps
+        };
+        if (Profile.Pin is not null && Profile.Pin.Count > 0)
+        {
+            _profileFormData.Pin = Profile.Pin.Select(i => $"{i}").Aggregate((a, b) => $"{a}{b}");
+        }
+        
+        _editContext = new EditContext(_profileFormData);
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnValidationRequested += HandleValidationRequested;
+        
+        return Task.CompletedTask;
+    }
+
+    private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        _messageStore.Clear();
+
+        if (_profileFormData.HasPin)
+        {
+            if (string.IsNullOrEmpty(_profileFormData.Pin))
+            {
+                _messageStore.Add(() => _profileFormData.Pin, "Pin cant be empty");
+            }
+            else if (!Regex.IsMatch(_profileFormData.Pin, @"^[0-9]+$"))
+            {
+                _messageStore.Add(() => _profileFormData.Pin, "Pin can only contain numbers");
+            }
+        }
+    }
+
+    public class ProfileFormData
+    {
+        [Required(ErrorMessage = "Name is Required", AllowEmptyStrings = false)]
+        [MinLength(3, ErrorMessage = "Name should be minimum 3 characters long")]
+        public string Name { get; set; } = null!;
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string IconPngPath { get; set; } = "";
+
+        public bool HasPin { get; set; } = false;
+        //public ICollection<int>? Pin { get; set; } = null;
+        public string Pin { get; set; } = "";
+        
+        public ICollection<App> Apps { get; set; } = new List<App>();
+    }
+
+    private void OnSubmenuAccordionShowing(AccordionEventArgs obj)
+    {
+        if(obj.Name != "Apps") return;
+        AppsAccordionShowing?.Invoke();
+    }
+
+    private async Task Submit()
+    {
+        //consume the Enter key and reset to allow form submission on submit click
+        if (!_allowFormSubmit)
+        {
+            _allowFormSubmit = true;
+            return;
+        }
+        Console.WriteLine("Submit");
+
+        if (Api.Profiles is null) await Api.UpdateProfiles();
+        var profile = Api.Profiles.FirstOrDefault(p => p.Id == _profileFormData.Id);
+        if (profile is null)
+        {
+            EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                    "",
+                    "Information",
+                    $"{DateTime.Now}",
+                    $"Profile was edited externally, Please reload!"
+                )
+            );
+            return;
+        }
+        
+        profile.Name = _profileFormData.Name;
+        profile.Icon_png_path = _profileFormData.IconPngPath;
+        profile.Apps = _appsAccordion.Apps ?? Profile.Apps;
+        profile.Pin = _profileFormData.HasPin
+            ? _profileFormData.Pin.Select(c => c - '0').ToList()
+            : null;
+        
+        await Api.UpdateProfile(profile.Id, profile);
+
+        var addedDbApps = Context.Apps
+            .AsEnumerable()
+            .Where(dbApp =>
+                profile.Apps.AsEnumerable().Any(a => a.Id == dbApp.AppId)
+            )
+            .ToList();
+
+        Context.Apps.RemoveRange(addedDbApps);
+        await Context.SaveChangesAsync();
+
+        EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                "",
+                "Information",
+                $"{DateTime.Now}",
+                $"Updated Profile: {profile.Name}."
+            )
+        );
+    }
+
+    private async Task Delete()
+    {
+        var parameters = new Dictionary<string, object>();
+
+        var options = new ConfirmDialogOptions
+        {
+            YesButtonText = "DELETE",
+            YesButtonColor = ButtonColor.Danger,
+            NoButtonText = "CANCEL",
+            NoButtonColor = ButtonColor.Secondary
+        };
+        
+        parameters.Add("Profile", new Profile()
+        {
+            Name = _profileFormData.Name,
+            Id = _profileFormData.Id
+        });
+        var confirmation = await _dialog.ShowAsync<ProfileDeletionDialog>(
+            title: "Are you sure you want to delete this Profile?",
+            parameters: parameters,
+            confirmDialogOptions: options);
+        if (!confirmation) return;
+        
+        // Todo: Check for orphaned Apps and save them for eventual reuse.
+        
+        await Api.DeleteProfile(_profileFormData.Id);
+        await Api.UpdateProfiles();
+        EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                "",
+                "Information",
+                $"{DateTime.Now}",
+                $"Deleted Profile: {_profileFormData.Name}."
+            )
+        );
+    }
+    
+    private bool _allowFormSubmit = true;
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        _allowFormSubmit = args.Key != "Enter";
+    }
+
+}
