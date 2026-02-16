@@ -7,7 +7,7 @@
 
 @if(Directory.Exists("/etc/wolf/covers"))
 {
-    <Offcanvas @ref="offCanvas"
+    <Offcanvas @ref="_offCanvas"
                title="Select Cover">
         <BodyTemplate>
             @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
@@ -21,7 +21,7 @@
 }
 
 <div style="width: 500px">
-<EditForm EditContext="editContext" OnValidSubmit="Submit">
+<EditForm EditContext="_editContext" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
     <div class="form-group row mb-3">
             <TextInput @bind-Value="Data!.Name" Placeholder="Name"/>
@@ -61,32 +61,42 @@
 </div>
 
 @code {
-    private Offcanvas? offCanvas = null!;
-    private async Task OnShowOffCanvasClick() => await offCanvas?.ShowAsync();
-    private async Task OnHideOffCanvasClick() => await offCanvas?.HideAsync();
+    private Offcanvas? _offCanvas = null!;
+    private async Task OnShowOffCanvasClick()
+    {
+        if(_offCanvas is not null) 
+            await _offCanvas.ShowAsync();
+    }
+
+
+    private async Task OnHideOffCanvasClick()
+    {
+        if(_offCanvas is not null) 
+            await _offCanvas.HideAsync();
+    }
     
     [Parameter]
     public EventCallback OnValidSubmit { get; set; }
 
     [SupplyParameterFromForm]
     public ProfileFormData? Data { get; set; }
-    private ValidationMessageStore? messageStore;
-    private EditContext? editContext;
+    private ValidationMessageStore? _messageStore;
+    private EditContext? _editContext;
 
     private bool _showPinInput = false;
 
     protected override void OnInitialized()
     {
         Data ??= new();
-        editContext = new(Data);
-        editContext.OnValidationRequested += HandleValidationRequested;
-        messageStore = new(editContext);
+        _editContext = new(Data);
+        _editContext.OnValidationRequested += HandleValidationRequested;
+        _messageStore = new(_editContext);
     }
 
     private void HandleValidationRequested(object? sender,
         ValidationRequestedEventArgs args)
     {
-        messageStore?.Clear();
+        _messageStore?.Clear();
 
         //messageStore?.Add(() => Data!.Name, "Stupid Name.");
     }
@@ -114,9 +124,9 @@
 
     public void Dispose()
     {
-        if (editContext is not null)
+        if (_editContext is not null)
         {
-            editContext.OnValidationRequested -= HandleValidationRequested;
+            _editContext.OnValidationRequested -= HandleValidationRequested;
         }
     }
 

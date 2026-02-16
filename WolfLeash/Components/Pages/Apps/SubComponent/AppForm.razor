@@ -7,7 +7,7 @@
 
 @if(Directory.Exists("/etc/wolf/covers"))
 {
-    <Offcanvas @ref="offCanvas"
+    <Offcanvas @ref="_offCanvas"
                title="Select Cover">
         <BodyTemplate>
             @foreach (var file in Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png"))
@@ -103,9 +103,9 @@
 </div>
 
 @code {
-    private Offcanvas? offCanvas = null!;
-    private async Task OnShowOffCanvasClick() => await offCanvas?.ShowAsync();
-    private async Task OnHideOffCanvasClick() => await offCanvas?.HideAsync();
+    private Offcanvas? _offCanvas = null!;
+    private async Task OnShowOffCanvasClick() => await _offCanvas?.ShowAsync();
+    private async Task OnHideOffCanvasClick() => await _offCanvas?.HideAsync();
     
     [Parameter]
     public EventCallback<App> OnValidSubmit { get; set; }

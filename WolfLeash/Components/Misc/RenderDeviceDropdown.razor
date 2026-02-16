@@ -29,7 +29,7 @@ else
 @code {
     private List<string> RenderDevices { get; set; } = [];
     public bool IsDisabled { get; set; } = false;
-    [Parameter] public string Value { get; set; }
+    [Parameter, EditorRequired] public string Value { get; set; }
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
     private void OnItemSelected(string item)
