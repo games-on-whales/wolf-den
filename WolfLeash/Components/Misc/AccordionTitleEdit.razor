@@ -1,12 +1,8 @@
+@using System.ComponentModel.DataAnnotations
 @inject WolfLeashDbContext Context
 
 <div>
     <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-        @*@if (Client.Icon is not null)
-        {
-            <Icon Name="@((IconName)Client.Icon)" Class="me-1"/>
-        }*@
-
         @if (_enableEdit)
         {
             <TextInput @onkeyup="@OnKeyUp" @bind-Value="@_inputText" Placeholder="@Placeholder"/>
@@ -22,7 +18,9 @@
 @code {
     [Parameter, EditorRequired] public string Placeholder { get; set; }
     [Parameter, EditorRequired] public string Text { get; set; }
-    [Parameter, EditorRequired] public EventCallback<string> OnSubmit { get; set; }
+    [Parameter] public EventCallback<string> OnSubmit { get; set; }
+    
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
     
     private string _inputText = "";
     private bool _enableEdit = false;
@@ -31,7 +29,15 @@
     {
         if (args.Code is "Enter" or "NumpadEnter")
         {
+            if (string.IsNullOrEmpty(_inputText))
+            {
+                _enableEdit = false;
+                await OnSubmit.InvokeAsync(_inputText);
+                return;
+            }
+            Text = _inputText;
             await OnSubmit.InvokeAsync(_inputText);
+            await TextChanged.InvokeAsync(Text);
             _enableEdit = false;
             //await OnSave();
         }
@@ -39,7 +45,15 @@
 
     private async Task OnSave()
     {
+        if (string.IsNullOrEmpty(_inputText))
+        {
+            _enableEdit = false;
+            await OnSubmit.InvokeAsync(_inputText);
+            return;
+        }
+        Text = _inputText;
         await OnSubmit.InvokeAsync(_inputText);
+        await TextChanged.InvokeAsync(Text);
         _enableEdit = false;
     }
 }
