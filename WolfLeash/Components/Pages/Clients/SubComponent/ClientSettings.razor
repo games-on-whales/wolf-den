@@ -107,7 +107,7 @@
 
     private async Task Save()
     {
-        Api.GeneratedClient.SettingsAsync(new UpdateClientSettingsRequest()
+        await Api.GeneratedClient.SettingsAsync(new UpdateClientSettingsRequest()
         {
             Client_id = Client.Client_id,
             App_state_folder = Client.App_state_folder,
