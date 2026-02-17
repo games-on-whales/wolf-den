@@ -1,4 +1,5 @@
 @inject Api Api
+@inject WolfLeashDbContext Context
 
 <div class="d-flex flex-row mb-3">
     <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
@@ -47,7 +48,7 @@
             <DropdownMenu>
                 <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.AUTO))" Type="DropdownItemType.Button">Auto</DropdownItem>
                 <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.XBOX))" Type="DropdownItemType.Button">XBox</DropdownItem>
-                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.PS))" Type="DropdownItemType.Button">PS</DropdownItem>
+                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.PS))" Type="DropdownItemType.Button">PlayStation</DropdownItem>
                 <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.NINTENDO))" Type="DropdownItemType.Button">Nintendo</DropdownItem>
             </DropdownMenu>
         </Dropdown>
@@ -77,6 +78,7 @@
 @code {
     [Parameter, EditorRequired] public PairedClient Client { get; set; }
     private ClientSettingsFormData _formData = null!;
+    [Inject] protected EventLogger EventLogger { get; set; } = default!;
 
     protected override Task OnInitializedAsync()
     {
@@ -124,6 +126,15 @@
                 }
             }
         });
+
+        var dbClient = Context.Clients.FirstOrDefault(c => c.Id == Client.Client_id);
+        EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                "",
+                "Settings Saved",
+                $"{DateTime.Now}",
+                $"Saved Settings for: {(string.IsNullOrEmpty(dbClient?.Alias) ? Client.Client_id : dbClient.Alias)}."
+            )
+        );
     }
     
     private class ClientSettingsFormData
