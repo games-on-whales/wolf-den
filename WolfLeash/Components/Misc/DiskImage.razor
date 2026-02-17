@@ -1,0 +1,33 @@
+@using Microsoft.AspNetCore.Mvc
+@if (_icon is not null)
+{
+    <img src="@_icon" alt="placeholder"/>
+}
+else
+{
+    <Spinner />
+}
+
+
+@code {
+    [Parameter, EditorRequired] public string FilePath { get; set; }
+    private string _file = "";
+    private string? _icon = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read);
+            var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var byteArray = ms.ToArray();
+            var b64String = Convert.ToBase64String(byteArray);
+            _icon = "data:image/png;base64," + b64String;
+        }
+        catch (FileNotFoundException e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}

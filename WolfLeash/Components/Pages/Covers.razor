@@ -1,0 +1,74 @@
+@page "/Covers"
+<h3>Covers</h3>
+
+<PngFileUpload OnFileUploaded="OnFileUploaded" />
+
+<div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
+<Pagination ActivePageNumber="@currentPageNumber"
+            TotalPages="@maxPageNumbers"
+            PageChanged="OnPageChangedAsync" />
+</div>
+
+@{
+    foreach (var fileChunk in files.Chunk(chuckSize).Skip(currentPageNumber - 1).Take(1))
+    {
+        foreach (var row in fileChunk.Chunk(coloums).Take(rows))
+        {
+            if(row[0] == "") break;
+            <CardGroup>
+                @foreach (var file in row)
+                {
+                    //Console.WriteLine(file);
+                    <Card Class="mb-4" Style="width:18rem;">
+                        @if (!string.IsNullOrEmpty(file))
+                        {
+                            <DiskImage FilePath="@file"/>
+                            <CardBody>
+                                <CardTitle>@Path.GetFileName(file)</CardTitle>
+                            </CardBody>
+                        }
+                    </Card>
+                }
+            </CardGroup>
+        }
+    }
+}
+
+<div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
+<Pagination ActivePageNumber="@currentPageNumber"
+            TotalPages="@maxPageNumbers"
+            PageChanged="OnPageChangedAsync" />
+</div>
+
+@code {
+    int coloums = 9;
+    int rows = 3;
+    int chuckSize = 0;
+    int currentPageNumber = 1;
+    int maxPageNumbers = 0;
+    List<string> files = new List<string>();
+
+    private async Task OnFileUploaded(string file)
+    {
+        files = Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png").ToList();
+        // Add empty elements until every page is full.
+        files.AddRange(Enumerable.Range(0, chuckSize - (files.Count % chuckSize)).Select(_ => ""));
+        maxPageNumbers = (files.Count() / chuckSize);
+    }
+    
+    protected override void OnInitialized()
+    {
+        chuckSize = coloums * rows;
+        files = Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png").ToList();
+        // Add empty elements until every page is full.
+        files.AddRange(Enumerable.Range(0, chuckSize - (files.Count % chuckSize)).Select(_ => ""));
+        maxPageNumbers = (files.Count() / chuckSize);
+    }
+
+    private async Task OnPageChangedAsync(int newPageNumber)
+    {
+        await Task.Run(() => { currentPageNumber = newPageNumber; });
+        StateHasChanged();
+    }
+    
+}
