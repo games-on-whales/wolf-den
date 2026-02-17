@@ -30,7 +30,7 @@
     <span class="dismiss">🗙</span>
 </div>
 
-<Toasts class="p-3" AutoHide="true" Delay="4000" StackLength="3" Placement="ToastsPlacement.TopRight" />
+<Toasts class="p-3" Delay="6000" StackLength="3" Placement="ToastsPlacement.TopRight" />
 
 @code {
     IEnumerable<NavItem>? navItems;
@@ -53,6 +53,7 @@
             Title = "Pairing Request",
             HelpText = $"{DateTime.Now}",
             Content = @<div>Received new Pairing Request. Check <a href="clients/pairing">Here</a></div>,
+            AutoHide = false,
         });
     }
 
