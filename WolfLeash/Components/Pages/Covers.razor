@@ -1,15 +1,22 @@
 @page "/Covers"
 <h3>Covers</h3>
 
-<PngFileUpload OnFileUploaded="OnFileUploaded" />
+@if (!Directory.Exists("/etc/wolf/covers"))
+{
+    <br>
+    <h4>Folder not found!</h4>
+    <h5>Please mount a folder that is accessible by Wolf to "/etc/wolf/covers" to enable Covers function</h5>
+}
+else
+{
+    <PngFileUpload OnFileUploaded="OnFileUploaded" />
 
-<div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
-<Pagination ActivePageNumber="@currentPageNumber"
-            TotalPages="@maxPageNumbers"
-            PageChanged="OnPageChangedAsync" />
-</div>
-
-@{
+    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
+    <Pagination ActivePageNumber="@currentPageNumber"
+                TotalPages="@maxPageNumbers"
+                PageChanged="OnPageChangedAsync" />
+    </div>
+    
     foreach (var fileChunk in files.Chunk(chuckSize).Skip(currentPageNumber - 1).Take(1))
     {
         foreach (var row in fileChunk.Chunk(coloums).Take(rows))
@@ -32,14 +39,15 @@
             </CardGroup>
         }
     }
+    
+    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
+    <Pagination ActivePageNumber="@currentPageNumber"
+                TotalPages="@maxPageNumbers"
+                PageChanged="OnPageChangedAsync" />
+    </div>
 }
-
-<div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
-<Pagination ActivePageNumber="@currentPageNumber"
-            TotalPages="@maxPageNumbers"
-            PageChanged="OnPageChangedAsync" />
-</div>
-
+                
+                
 @code {
     int coloums = 9;
     int rows = 3;
@@ -58,6 +66,7 @@
     
     protected override void OnInitialized()
     {
+        if(!Directory.Exists("/etc/wolf/covers")) return;
         chuckSize = coloums * rows;
         files = Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png").ToList();
         // Add empty elements until every page is full.
