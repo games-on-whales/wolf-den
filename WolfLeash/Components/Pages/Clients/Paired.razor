@@ -1,6 +1,9 @@
 @page "/Clients/Paired"
+@using WolfLeash.Components.Pages.Clients.SubComponent
 @inject Api Api
 @inject WolfLeashDbContext Context
+
+<ConfirmDialog @ref="_dialog" />
 
 <h3>Paired Clients:</h3>
 @if (Clients is null)
@@ -25,7 +28,14 @@ else
                 }
             </TitleTemplate>
             <Content>
-                @*<ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)" />*@
+                <Accordion>
+                    <AccordionItem Name="@(client.Id + "-settings")" Title="Settings">
+                        <Content>
+                            <ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)"/>
+                        </Content>
+                    </AccordionItem>
+                </Accordion>
+                <br>
                 <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
                     <Button @onclick="() => UnpairClient(client)" Color="ButtonColor.Danger">Unpair</Button>
                 </div>
@@ -36,6 +46,7 @@ else
 }
 
 @code {
+    private ConfirmDialog _dialog = null!;
     private List<Client>? Clients { get; set; }
     private ICollection<PairedClient> ApiClients { get; set; } = null!;
 
@@ -80,6 +91,21 @@ else
 
     private async Task UnpairClient(Client client)
     {
+        var options = new ConfirmDialogOptions
+        {
+            YesButtonText = "UNPAIR",
+            YesButtonColor = ButtonColor.Danger,
+            NoButtonText = "CANCEL",
+            NoButtonColor = ButtonColor.Success
+        };
+
+        var confirmation = await _dialog.ShowAsync(
+            title: "Unpair Client",
+            message1: $"Do you want to Unpair {(string.IsNullOrEmpty(client.Alias) ? client.Id : client.Alias)}",
+            confirmDialogOptions: options);
+        
+        if(!confirmation) return;
+        
         await Api.GeneratedClient.Client2Async(new UnpairClientRequest()
         {
             Client_id = client.Id
