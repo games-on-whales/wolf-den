@@ -56,6 +56,7 @@ else
     int maxPageNumbers = 0;
     List<string> files = new List<string>();
 
+    // Todo: Change behaviour that one uploaded file does not cause a reload of all files from disk.
     private async Task OnFileUploaded(string file)
     {
         files = Directory.GetFiles("/etc/wolf/covers").Where(f => Path.GetExtension(f) == ".png").ToList();
