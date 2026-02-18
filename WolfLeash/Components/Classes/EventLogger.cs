@@ -13,10 +13,18 @@ public class EventLogger
         _toastService = toastService;
     }
 
-    public void LogEvent(ToastMessage msg, bool notify = true)
+    public void LogEvent(ToastMessage msg, bool? autohideOverwrite = null, bool notify = true)
     {
         if (notify)
         {
+            if (autohideOverwrite.HasValue)
+            {
+                msg.AutoHide = autohideOverwrite.Value;
+            }
+            else
+            {
+                msg.AutoHide = msg.Type is not (ToastType.Danger or ToastType.Warning);
+            }
             _toastService.Notify(msg);
         }
 

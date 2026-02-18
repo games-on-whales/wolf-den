@@ -3,6 +3,8 @@
 @inject Api Api
 @inject WolfLeashDbContext Context
 
+<ConfirmDialog @ref="_dialog" />
+
 <h3>Paired Clients:</h3>
 @if (Clients is null)
 {
@@ -13,25 +15,48 @@ else
     <Accordion>
     @foreach (var client in Clients)
     {
+        Func<string, Task> callback = async (s) => await OnSave(client, s); 
         <AccordionItem Name="@client.Id">
-        <TitleTemplate>
-            <AccordionTitleEdit Client="@client" />
-        </TitleTemplate>
-        <Content>
-            @*<ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)" />*@
-            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-                <Button @onclick="() => UnpairClient(client)" Color="ButtonColor.Danger">Unpair</Button>
-            </div>
-        </Content>
+            <TitleTemplate>
+                @if (!string.IsNullOrEmpty(client.Alias))
+                {
+                    <AccordionTitleEdit Text="@client.Alias" Placeholder="@client.Id" OnSubmit="@callback"/>
+                }
+                else
+                {
+                    <AccordionTitleEdit Text="@client.Id" Placeholder="@client.Id" OnSubmit="@callback"/>
+                }
+            </TitleTemplate>
+            <Content>
+                <Accordion>
+                    <AccordionItem Name="@(client.Id + "-settings")" Title="Settings">
+                        <Content>
+                            <ClientSettings Client="@ApiClients.First(c => c.Client_id == client.Id)"/>
+                        </Content>
+                    </AccordionItem>
+                </Accordion>
+                <br>
+                <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                    <Button @onclick="() => UnpairClient(client)" Color="ButtonColor.Danger">Unpair</Button>
+                </div>
+            </Content>
         </AccordionItem>
     }
     </Accordion>
 }
 
 @code {
+    private ConfirmDialog _dialog = null!;
     private List<Client>? Clients { get; set; }
     private ICollection<PairedClient> ApiClients { get; set; } = null!;
 
+    private async Task OnSave(Client client, string newAlias)
+    {
+        client.Alias = newAlias;
+        Context.Clients.Update(client);
+        await Context.SaveChangesAsync();
+    }
+    
     private async Task UpdateDisplayedClients()
     {
         var result = await Api.GeneratedClient.ClientsAsync();
@@ -66,6 +91,21 @@ else
 
     private async Task UnpairClient(Client client)
     {
+        var options = new ConfirmDialogOptions
+        {
+            YesButtonText = "UNPAIR",
+            YesButtonColor = ButtonColor.Danger,
+            NoButtonText = "CANCEL",
+            NoButtonColor = ButtonColor.Success
+        };
+
+        var confirmation = await _dialog.ShowAsync(
+            title: "Unpair Client",
+            message1: $"Do you want to Unpair {(string.IsNullOrEmpty(client.Alias) ? client.Id : client.Alias)}",
+            confirmDialogOptions: options);
+        
+        if(!confirmation) return;
+        
         await Api.GeneratedClient.Client2Async(new UnpairClientRequest()
         {
             Client_id = client.Id

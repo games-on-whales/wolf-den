@@ -30,7 +30,7 @@
     <span class="dismiss">🗙</span>
 </div>
 
-<Toasts class="p-3" AutoHide="true" Delay="4000" StackLength="3" Placement="ToastsPlacement.TopRight" />
+<Toasts class="p-3" Delay="6000" StackLength="3" Placement="ToastsPlacement.TopRight" />
 
 @code {
     IEnumerable<NavItem>? navItems;
@@ -53,6 +53,7 @@
             Title = "Pairing Request",
             HelpText = $"{DateTime.Now}",
             Content = @<div>Received new Pairing Request. Check <a href="clients/pairing">Here</a></div>,
+            AutoHide = false,
         });
     }
 
@@ -83,8 +84,9 @@
             new NavItem { Id = "10", Href = "/clients/pairing", IconName = IconName.Plus, Text = "Pairing Requests", ParentId="8"},
 
             //new NavItem { Id = "11", Href = "/info", IconName = IconName.ClipboardData, Text = "Information"  },
+            new NavItem { Id = "11", Href = "/covers", IconName = IconName.CardImage, Text = "Covers" },
             
-            new NavItem { Id = "11", Href = "/settings", IconName = IconName.Gear, Text = "Settings" }
+            new NavItem { Id = "12", Href = "/settings", IconName = IconName.Gear, Text = "Settings" }
         };
 
         return navItems;

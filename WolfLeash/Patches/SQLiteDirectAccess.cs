@@ -52,7 +52,6 @@ class SQLiteDirectAccess
     
     public int TruncateTableQuery(params string[] tableNames)
     {
-        SQLiteDataAdapter ad;
         var affectedRows = 0;
         try
         {

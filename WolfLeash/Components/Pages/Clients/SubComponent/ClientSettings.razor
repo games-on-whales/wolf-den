@@ -1,28 +1,98 @@
+@inject Api Api
+@inject WolfLeashDbContext Context
 
-@foreach (var controller in Client.Settings.Controllers_override.Index())
-{
-    <div class="form-group row mb-3">
-        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-            <a>#@(controller.Index+1):</a> @ControllerDisplayNames[controller.Item]
-            <Button @onclick="@(_ => {})" Color="ButtonColor.None">
-                <Icon Name="IconName.XCircleFill" Color="IconColor.Danger"/>
-            </Button>
-        </div>
+<div class="d-flex flex-row mb-3">
+    <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+        <a style="white-space: nowrap">User and Group Id:</a>
+        <NumberInput TValue="int" @bind-Value="_formData.Run_uid" Min="0" Max="2097151" Placeholder="1000" />
+        <a>:</a>
+        <NumberInput TValue="int" @bind-Value="_formData.Run_gid" Min="0" Max="2097151" Placeholder="1000" />
     </div>
-}
+</div>
 
-<Dropdown Color="DropdownColor.Secondary" AutoClose="true">
-    <DropdownToggleButton>Add Controller Override</DropdownToggleButton>
-    <DropdownMenu>
-        <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.AUTO))" Type="DropdownItemType.Button">Auto</DropdownItem>
-        <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.XBOX))" Type="DropdownItemType.Button">XBox</DropdownItem>
-        <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.PS))" Type="DropdownItemType.Button">PS</DropdownItem>
-        <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.NINTENDO))" Type="DropdownItemType.Button">Nintendo</DropdownItem>
-    </DropdownMenu>
-</Dropdown>
+<div class="d-flex flex-row mb-3">
+    <a style="white-space: nowrap">Mouse Acceleration:</a>
+    <RangeInput TValue="double" @bind-Value="_formData.Mouse_acceleration" Min="0.01" Max="4" Step="0.01" />
+    <Badge Color="BadgeColor.Primary"
+           VisuallyHiddenText="Mouse Acceleration">
+        @($"{_formData.Mouse_acceleration:0.00}")
+    </Badge>
+</div>
+
+<div class="d-flex flex-row mb-3">
+    <a style="white-space: nowrap">V-Scroll Acceleration:</a>
+    <RangeInput TValue="double" @bind-Value="_formData.V_scroll_acceleration" Min="0.01" Max="4" Step="0.01"/>
+    <Badge Color="BadgeColor.Primary"
+           VisuallyHiddenText="Mouse Acceleration">
+        @($"{_formData.V_scroll_acceleration:0.00}")
+    </Badge>
+</div>
+
+<div class="d-flex flex-row mb-3">
+    <a style="white-space: nowrap">H-Scroll Acceleration:</a>
+    <RangeInput TValue="double" @bind-Value="_formData.H_scroll_acceleration" Min="0.01" Max="4" Step="0.01"/>
+    <Badge Color="BadgeColor.Primary"
+           VisuallyHiddenText="Mouse Acceleration">
+        @($"{_formData.H_scroll_acceleration:0.00}")
+    </Badge>
+</div>
+
+<Card>
+    <CardHeader>
+        Controller
+    </CardHeader>
+    <CardBody>
+    <div class="form-group row mb-3">
+        <Dropdown Color="DropdownColor.Secondary" AutoClose="true">
+            <DropdownToggleButton>Add Controller Override</DropdownToggleButton>
+            <DropdownMenu>
+                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.AUTO))" Type="DropdownItemType.Button">Auto</DropdownItem>
+                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.XBOX))" Type="DropdownItemType.Button">XBox</DropdownItem>
+                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.PS))" Type="DropdownItemType.Button">PlayStation</DropdownItem>
+                <DropdownItem @onclick="@(_ => AddControllerOverride(Controllers_override2.NINTENDO))" Type="DropdownItemType.Button">Nintendo</DropdownItem>
+            </DropdownMenu>
+        </Dropdown>
+    </div>
+
+    @foreach (var controller in _formData.Controllers_override.Index())
+    {
+        var value = $"#{controller.Index + 1}: {ControllerDisplayNames[controller.Item]}";
+        <div class="form-group row mb-3">
+            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                <TextInput Disabled="true" @bind-Value="value"/>
+                <Button @onclick="@(_ => { _formData.Controllers_override.RemoveAt(controller.Index); })" Color="ButtonColor.None">
+                    <Icon Name="IconName.XCircleFill" Color="IconColor.Danger"/>
+                </Button>
+            </div>
+        </div>
+    }
+    </CardBody>
+</Card>
+
+<br>
+
+<div class="d-flex flex-row mb-3">
+    <Button @onclick="Save" Color="ButtonColor.Success">Save</Button>
+</div>
 
 @code {
     [Parameter, EditorRequired] public PairedClient Client { get; set; }
+    private ClientSettingsFormData _formData = null!;
+    [Inject] protected EventLogger EventLogger { get; set; } = default!;
+
+    protected override Task OnInitializedAsync()
+    {
+        _formData = new ClientSettingsFormData()
+        {
+            Controllers_override = Client.Settings.Controllers_override.ToList(),
+            Mouse_acceleration = Client.Settings.Mouse_acceleration,
+            V_scroll_acceleration = Client.Settings.V_scroll_acceleration,
+            H_scroll_acceleration = Client.Settings.H_scroll_acceleration,
+            Run_gid = Client.Settings.Run_gid,
+            Run_uid = Client.Settings.Run_uid
+        };
+        return Task.CompletedTask;
+    }
 
     private Dictionary<Controllers_override2, string> ControllerDisplayNames { get; set; } = new()
     {
@@ -34,6 +104,46 @@
 
     private void AddControllerOverride(Controllers_override2 controller)
     {
-        Client.Settings.Controllers_override.Add(controller);
+        _formData.Controllers_override.Add(controller);
+    }
+
+    private async Task Save()
+    {
+        await Api.GeneratedClient.SettingsAsync(new UpdateClientSettingsRequest()
+        {
+            Client_id = Client.Client_id,
+            App_state_folder = Client.App_state_folder,
+            Settings = new PartialClientSettings()
+            {
+                Mouse_acceleration = _formData.Mouse_acceleration,
+                H_scroll_acceleration = _formData.H_scroll_acceleration,
+                V_scroll_acceleration = _formData.V_scroll_acceleration,
+                Run_gid = _formData.Run_gid,
+                Run_uid = _formData.Run_uid,
+                AdditionalProperties = new Dictionary<string, object>() // Todo: Change to Correct typed field when the binding is Fixed.
+                {
+                    { "controllers_override", _formData.Controllers_override.Select(co => co.ToString()).ToArray() }
+                }
+            }
+        });
+
+        var dbClient = Context.Clients.FirstOrDefault(c => c.Id == Client.Client_id);
+        EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                "",
+                "Settings Saved",
+                $"{DateTime.Now}",
+                $"Saved Settings for: {(string.IsNullOrEmpty(dbClient?.Alias) ? Client.Client_id : dbClient.Alias)}."
+            )
+        );
+    }
+    
+    private class ClientSettingsFormData
+    {
+        public List<Controllers_override2> Controllers_override { get; set; }
+        public double Mouse_acceleration { get; set; }
+        public double V_scroll_acceleration { get; set; }
+        public double H_scroll_acceleration { get; set; }
+        public int Run_uid { get; set; }
+        public int Run_gid { get; set; }
     }
 }

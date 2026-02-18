@@ -2,7 +2,7 @@ namespace WolfLeash.Patches;
 
 public class DatabasePreMigrationPatches
 {
-    private SQLiteDirectAccess _directAccess = new SQLiteDirectAccess();
+    private readonly SQLiteDirectAccess _directAccess = new SQLiteDirectAccess();
     
     public void Execute()
     {

@@ -1,0 +1,94 @@
+﻿@using System.IO
+
+<div style="display:flex; flex-direction: row; justify-content: left; align-items: normal">
+    <p>
+        <a>Upload File:</a>
+        <label>
+            <InputFile accept=".png" OnChange="LoadFiles" multiple/>
+        </label>
+    </p>
+
+    @if (_isLoading)
+    {
+        <div style="width: 500px">
+            <Progress Class="mb-3">
+                <ProgressBar @ref="_progressBar"
+                             Type="ProgressType.StripedAndAnimated"
+                             Color="ProgressColor.Success" />
+            </Progress>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> OnFileUploaded { get; set; }
+    [Inject] protected EventLogger EventLogger { get; set; } = null!;
+    private readonly List<IBrowserFile> _loadedFiles = [];
+    private bool _isLoading;
+    private int _filesToUpload = 0;
+    private Timer? _timer;
+    private ProgressBar? _progressBar;
+
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(state =>
+        {
+            if (state is not PngFileUpload obj) return;
+            obj._isLoading = false;
+            InvokeAsync(StateHasChanged);
+        }, this, Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        _isLoading = true;
+        _loadedFiles.Clear();
+
+        _filesToUpload = e.FileCount;
+        
+        foreach (var file in e.GetMultipleFiles(_filesToUpload))
+        {
+            try
+            {
+                var filePath = Path.Join("/etc/wolf/covers", file.Name);
+                if (Path.GetExtension(filePath).ToLower() != ".png")
+                {
+                    EventLogger.LogEvent(new ToastMessage(ToastType.Warning,
+                            "",
+                            "Error",
+                            $"{DateTime.Now}",
+                            $"File: {file.Name} is not a png file, Skipping."
+                        )
+                    );
+                    continue;
+                }
+                await using var fs = File.Create(filePath);
+                await file.OpenReadStream(512000 * 1024).CopyToAsync(fs);
+                fs.Close();
+                _loadedFiles.Add(file);
+                StateHasChanged();
+                EventLogger.LogEvent(new ToastMessage(ToastType.Info,
+                        "",
+                        "Success",
+                        $"{DateTime.Now}",
+                        $"File: {file.Name} Uploaded."
+                    )
+                );
+                await OnFileUploaded.InvokeAsync(filePath);
+                _progressBar?.IncreaseWidth(100.0 / _filesToUpload);
+            }
+            catch (Exception ex)
+            {
+                EventLogger.LogEvent(new ToastMessage(ToastType.Danger,
+                        "",
+                        "Error",
+                        $"{DateTime.Now}",
+                        $"File: {file.Name} Error: {ex.Message}"
+                    )
+                );
+            }
+        }
+        _timer?.Change(5000, Timeout.Infinite);
+    }
+    
+}

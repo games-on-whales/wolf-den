@@ -9,6 +9,7 @@
     <h3>Profiles</h3>
     <Button Color="ButtonColor.Primary" @onclick="AddNewProfile">Add Profile</Button>
 </div>
+<br>
 
 @if (Profiles is null)
 {
@@ -21,11 +22,7 @@ else
     <Accordion>
         @foreach (var profile in Profiles)
         {
-            <AccordionItem Title="@profile.Name" Name="@profile.Name">
-                <Content>
-                    <EditProfile Profile="@profile" OnProfilesModified="OnProfilesModified"></EditProfile>
-                </Content>
-            </AccordionItem>
+            <ProfileAccordionItem Profile="@profile" />
         }
     </Accordion>
 }
@@ -45,9 +42,11 @@ else
         Profiles = Api.Profiles.ToList();
         Api.ProfilesUpdatedEvent += OnProfilesUpdated;
     }
-
+    
     private async Task OnProfilesUpdated(object? caller, ICollection<Profile> profiles)
     {
+        Profiles = null;
+        await InvokeAsync(StateHasChanged);
         Profiles = profiles.ToList();
         await InvokeAsync(StateHasChanged);
     }

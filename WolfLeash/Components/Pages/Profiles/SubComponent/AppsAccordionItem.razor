@@ -1,0 +1,119 @@
+@inject Api Api
+@inject WolfLeashDbContext Context
+
+<AccordionItem Title="Apps" Name="Apps">
+    <Content>
+        <div class="row">
+            <div class="col">
+                <h4>Profile's Apps</h4>
+                <SortableList TItem="GamesOnWhales.App"
+                              Group="@ProfileId"
+                              Handle=".bb-sortable-list-handle"
+                              Name="empList1"
+                              Data="Apps"
+                              Context="item"
+                              OnUpdate="OnProfileListUpdate"
+                              OnRemove="OnProfileListRemove"
+                              EmptyText="Profile has currently no Apps">
+                    <ItemTemplate>
+                        <div class="d-flex justify-content-start">
+                            <div class="bb-sortable-list-handle pe-2"><Icon Name="IconName.GripVertical" /></div>
+                            <div>@item.Title</div>
+                        </div>
+                    </ItemTemplate>
+                </SortableList>
+            </div>
+            <div class="col">
+                <h4>All Apps</h4>
+                <SortableList TItem="GamesOnWhales.App"
+                              Group="@ProfileId"
+                              Handle=".bb-sortable-list-handle"
+                              Name="empList2"
+                              Data="allApps"
+                              Context="item"
+                              Pull="SortableListPullMode.Clone"
+                              OnUpdate="OnAppListUpdate"
+                              OnRemove="OnAppListRemove"
+                              AllowSorting="false"
+                              EmptyText="No Apps found. Add some.">
+                    <ItemTemplate>
+                        <div class="d-flex justify-content-start">
+                            <div class="bb-sortable-list-handle pe-2"><Icon Name="IconName.GripVertical" /></div>
+                            <div>@item.Title</div>
+                        </div>
+                    </ItemTemplate>
+                </SortableList>
+            </div>
+        </div>
+    </Content>
+</AccordionItem>
+
+@code {
+    [Parameter, EditorRequired] public ProfileAccordionItem Parent { get; set; }
+    [Parameter, EditorRequired] public List<GamesOnWhales.App> Apps { get; set; } = null!;
+    [Parameter, EditorRequired] public string ProfileId { get; set; }
+    public List<GamesOnWhales.App> allApps = null!;
+
+    protected override Task OnInitializedAsync()
+    {
+        Parent.AppsAccordionShowing = OnShowingAsync;
+        return Task.CompletedTask;
+    }
+
+    private async void OnShowingAsync()
+    {
+        allApps ??= (await Api.GetProfiles()).SelectMany(p => p.Apps).Distinct().ToList() ?? [];
+        allApps.AddRange(Context
+            .Apps
+            .Include(a => a.Runner)
+            .ToList()
+            .Select(a => a.ToDto()));
+    }
+    
+    private void OnProfileListUpdate(SortableListEventArgs args)
+    {
+        var itemToMove = Apps[args.OldIndex];
+
+        Apps.RemoveAt(args.OldIndex);
+
+        if (args.NewIndex < Apps.Count)
+            Apps.Insert(args.NewIndex, itemToMove);
+        else
+            Apps.Add(itemToMove);
+    }
+
+    private void OnAppListUpdate(SortableListEventArgs args)
+    {
+        var itemToMove = allApps[args.OldIndex];
+
+        allApps.RemoveAt(args.OldIndex);
+
+        if (args.NewIndex < allApps.Count)
+            allApps.Insert(args.NewIndex, itemToMove);
+        else
+            allApps.Add(itemToMove);
+    }
+
+    private void OnProfileListRemove(SortableListEventArgs args)
+    {
+        Apps.Remove(Apps[args.OldIndex]);
+    }
+
+    private void OnAppListRemove(SortableListEventArgs args)
+    {
+        // get the item at the old index in list 2
+        var item = allApps[args.OldIndex];
+
+        Apps ??= [];
+        if (args.NewIndex <= Apps.Count - 1)
+        {
+            Apps.Insert(args.NewIndex, item);
+        }
+        else
+        {
+            Apps.Add(item);
+        }
+        // add it to the new index in list 1
+        
+    }
+}
