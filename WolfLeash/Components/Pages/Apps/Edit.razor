@@ -25,7 +25,7 @@
         
         foreach (var profile in profiles.Where(p => p.Apps.Any(a => a.Id == modifiedApp.Id)))
         {
-            var apps = profile.Apps.Where(a => a.Id != _app.Id);
+            var apps = profile.Apps.Where(a => a.Id != _app!.Id);
             profile.Apps = apps.Append(modifiedApp).ToList();
             await Api.UpdateProfile(profile.Id, profile);
         }
@@ -36,7 +36,7 @@
             return;
         }
         
-        var oldApp = _app.Map(Context);
+        var oldApp = _app!.Map(Context);
         oldApp.Title = modifiedApp.Title;
         oldApp.AppId = modifiedApp.Id;
         oldApp.IconPngPath = modifiedApp.Icon_png_path;

@@ -11,8 +11,12 @@ public partial class DefaultAppLoader
     private const string ConfigBaseAddress =
         "https://raw.githubusercontent.com/games-on-whales/gow/refs/heads/master/apps/{0}/assets/wolf.config.toml";
     
-    private static readonly string[] DefaultApps = 
-        ["es-de", "firefox", "heroic-games-launcher", "kodi", "lutris", "pegasus", "prismlauncher", "retroarch", "steam", "xfce"];
+    private static readonly string[] DefaultApps = [
+        "es-de", "firefox", "heroic-games-launcher",
+        "kodi", "lutris", "pegasus",
+        "prismlauncher", "retroarch", "steam",
+        "xfce"
+    ];
 
     private static string? _defaultRenderDevice;
     private static string DefaultRenderDevice => _defaultRenderDevice ??= GetDefaultRenderDevice();
@@ -30,7 +34,8 @@ public partial class DefaultAppLoader
         var apps = new List<GamesOnWhales.App>();
         foreach (var appName in DefaultApps)
         {
-            apps.Add(await GetApp(appName, cancellationToken));
+            if(await GetApp(appName, cancellationToken) is { } app)
+                apps.Add(app);
         }
         return apps;
     }
@@ -38,16 +43,26 @@ public partial class DefaultAppLoader
     public Task<string> GetAppConfigAsync(string appName) => GetAppConfigAsync(appName, CancellationToken.None);
     public async Task<string> GetAppConfigAsync(string appName, CancellationToken cancellationToken)
     {
-        var url = string.Format(ConfigBaseAddress, appName);
-        var response = await _httpClient.GetAsync(url, cancellationToken);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        return body;
+        try
+        {
+            var url = string.Format(ConfigBaseAddress, appName);
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            return body;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return "";
+        }
     }
 
-    public Task<GamesOnWhales.App> GetApp(string appName) => GetApp(appName, CancellationToken.None);
-    public async Task<GamesOnWhales.App> GetApp(string appName, CancellationToken cancellationToken)
+    public Task<GamesOnWhales.App?> GetApp(string appName) => GetApp(appName, CancellationToken.None);
+    public async Task<GamesOnWhales.App?> GetApp(string appName, CancellationToken cancellationToken)
     {
         var cfg = await GetAppConfigAsync(appName, cancellationToken);
+        if (string.IsNullOrEmpty(cfg)) return null;
+        
         var model = ((TomlTableArray)Toml.ToModel(cfg)["apps"])[0];
         var runner = (TomlTable)model["runner"];
         var app = new GamesOnWhales.App()

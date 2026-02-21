@@ -10,7 +10,6 @@ else
 
 @code {
     [Parameter, EditorRequired] public string FilePath { get; set; }
-    private string _file = "";
     private string? _icon = null!;
 
     protected override async Task OnParametersSetAsync()

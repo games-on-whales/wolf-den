@@ -104,9 +104,18 @@
 
 @code {
     private Offcanvas? _offCanvas = null!;
-    private async Task OnShowOffCanvasClick() => await _offCanvas?.ShowAsync();
-    private async Task OnHideOffCanvasClick() => await _offCanvas?.HideAsync();
-    
+    private async Task OnShowOffCanvasClick()
+    {
+        if(_offCanvas is not null)
+            await _offCanvas.ShowAsync();
+    }
+
+    private async Task OnHideOffCanvasClick()
+    {
+        if(_offCanvas is not null)
+            await _offCanvas.HideAsync();
+    }
+
     [Parameter]
     public EventCallback<App> OnValidSubmit { get; set; }
     
@@ -261,9 +270,10 @@
         public string Title { get; set; } = null!;
         public string? Id { get; set; } = null;
         public string IconPngPath { get; set; } = null!;
+        // ReSharper disable once InconsistentNaming
         public bool Start_virtual_compositor { get; set; } = true;
+        // ReSharper disable once InconsistentNaming
         public bool Start_audio_server { get; set; } = true;
-        // public bool Support_hdr { get; set; } = false;
         public string Render_node { get; set; }
         //
         // public string H264_gst_pipeline { get; set; }
