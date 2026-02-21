@@ -4,6 +4,7 @@
 @inject ILogger<AddProfile> Logger
 @inject Api Api
 @inject EventLogger Event
+@inject DefaultAppLoader WildLifeApps
 
 @if(Directory.Exists("/etc/wolf/covers"))
 {
@@ -40,6 +41,13 @@
         }
     </div>
 
+    <div class="form-group row mb-3">
+        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+            <a>Include Default Apps:</a>
+            <InputCheckbox @bind-Value="_addDefaultApps"/>
+        </div>
+    </div>
+    
     <div class="form-group row mb-3">
         <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
             <a>Enable Pin:</a>
@@ -84,6 +92,7 @@
     private EditContext? _editContext;
 
     private bool _showPinInput = false;
+    private bool _addDefaultApps = false;
 
     protected override void OnInitialized()
     {
@@ -109,7 +118,7 @@
             Id = Guid.NewGuid().ToBase64(),
             Icon_png_path = Data!.IconPngPath,
             Pin = _showPinInput ? Data!.Pin : null,
-            Apps = Array.Empty<GamesOnWhales.App>()
+            Apps = _addDefaultApps ? await WildLifeApps.GetApps() : Array.Empty<GamesOnWhales.App>()
         };
 
         await Api.AddProfile(newProfile);
