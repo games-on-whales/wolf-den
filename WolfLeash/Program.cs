@@ -19,6 +19,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddLogging(configure => configure.AddConsole());
 builder.Services.AddTransient<ColorGenerator>();
 builder.Services.AddWolfApi<Api>();
+builder.Services.AddSingleton<DefaultAppLoader>();
 
 var migrationPatcher = new DatabasePreMigrationPatches();
 migrationPatcher.Execute();
