@@ -1,0 +1,56 @@
+@inject Api Api
+@inject WolfLeashDbContext Context
+
+<ConfirmDialog @ref="dialog" />
+
+<Card Class="mb-4" Style="width:18rem;">
+    <CardHeader>
+        <div style="display:flex; flex-direction: row; justify-content: space-between; align-items: center">
+            <div>
+                <a href="/apps/edit?AppId=@App.Id"><Icon Name="IconName.PencilSquare" Color="IconColor.Secondary"/></a>
+                <a>@App.Title</a>
+            </div>
+        </div>
+    </CardHeader>
+    @if (icon is not null && icon != "")
+    {
+        <img src="@icon" alt="placeholder"/>
+    }
+    else if(icon == "")
+    {
+        <img src="/default-icon.png" alt="placeholder"/>
+    }
+    else if(icon is null)
+    {
+        <div class="d-flex justify-content-center">
+            <Spinner />
+        </div>
+    }
+</Card>
+
+@code {
+    [Parameter, EditorRequired] public GamesOnWhales.App App { get; set; }
+    private string? icon;
+    private ConfirmDialog dialog = default!;
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetAppIcon();
+    }
+
+    private async Task SetAppIcon()
+    {
+        var stream = await Api.GetIcon(App);
+        if (stream is null)
+        {
+            icon = "";
+            return;
+        }
+
+        var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var byteArray = ms.ToArray();
+        var b64String = Convert.ToBase64String(byteArray);
+        icon = "data:image/png;base64," + b64String;
+    }
+}

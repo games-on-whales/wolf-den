@@ -20,14 +20,33 @@ else
     }
 }
 
+@if (MainScreenApps is not null)
+{
+    <br>
+    <h3>Moonlight Apps</h3>
+    <CardGroup>
+    @foreach (var app in MainScreenApps)
+    {
+        <MoonlightAppCard App="@app" />
+    }
+    @foreach (var _ in Enumerable.Range(0, ColumnSize - MainScreenApps.Count))
+    {
+        <Card></Card>
+    }
+    </CardGroup>
+}
+
 
 @code {
     [Parameter, EditorRequired] public int ColumnSize { get; set; } = 7;
     private List<GamesOnWhales.App>? Apps { get; set; } = null;
     //private ConfirmDialog dialog = default!;
-
+    private ICollection<GamesOnWhales.App>? MainScreenApps { get; set; } = null;
+    
     protected override async Task OnInitializedAsync()
     {
+        MainScreenApps ??= await Api.GetAppsAsync();
+        
         if (Api.Profiles is null)
             await Api.UpdateProfiles();
 
@@ -58,4 +77,5 @@ else
     {
         Api.ProfilesUpdatedEvent -= OnProfilesUpdated;
     }
+    
 }

@@ -16,11 +16,20 @@
     [Parameter]
     public string? AppId { get; set; }
     private GamesOnWhales.App? _app;
+    private bool _isMoonlightApp = false;
     
     AppForm? _addApp;
 
     private async Task OnSubmit(GamesOnWhales.App modifiedApp)
     {
+        if (_isMoonlightApp)
+        {
+            await Api.PostAppsDeleteAsync(modifiedApp.Id);
+            await Api.PostAppsAddAsync(modifiedApp);
+            NavigationManager.NavigateTo("/apps/show");
+            return;
+        }
+        
         var profiles = await Api.GetProfilesAsync();
         
         foreach (var profile in profiles.Where(p => p.Apps.Any(a => a.Id == modifiedApp.Id)))
@@ -74,5 +83,10 @@
             .Include(a => a.Runner)
             .FirstOrDefault(a => a.AppId == AppId)?
             .ToDto();
+        
+        if(_app is not null) return;
+
+        _app = (await Api.GetAppsAsync()).FirstOrDefault(a => a.Id == AppId);
+        _isMoonlightApp = true;
     }
 }
