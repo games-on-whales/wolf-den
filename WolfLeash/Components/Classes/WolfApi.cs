@@ -1,4 +1,6 @@
+using System.Text;
 using GamesOnWhales;
+using GamesOnWhales.SSE;
 
 namespace WolfLeash.Components.Classes;
 
@@ -9,49 +11,34 @@ public class Api : WolfApi
     private int _connectionErrorCount = 0;
     private DateTime _lastConnectionErrorTime = DateTime.MinValue;
     
-    public Api(ILogger<WolfApi> logger, IConfiguration configuration, IHostApplicationLifetime lifetime) : 
-        base(logger, configuration)
+    public Api(ILogger<WolfApi> logger, IConfiguration configuration, IEnumerable<ISseEventHandler> handlers, IHostApplicationLifetime lifetime) : 
+        base(logger, configuration, handlers)
     {
         _lifeCycleService = lifetime;
         _logger = logger;
-    }
-
-    private static Task Raise<TSource, TEventArgs>(Func<TSource, TEventArgs, Task>? handlers, TSource source, TEventArgs args)
-    {
-        if (handlers != null)
+        
+        var builder = new StringBuilder();
+        foreach (var handler in handlers)
         {
-            return Task.WhenAll(handlers.GetInvocationList()
-                .OfType<Func<TSource, TEventArgs, Task>>()
-                .Select(h => h(source, args)));
+            builder.Append(' ');
+            builder.AppendLine(handler.EventName);
         }
-
-        return Task.CompletedTask;
+        builder.Length -= builder.Length > 0 ? 1 : 0;
+        
+        logger.LogInformation("Listening for: \n{event}", builder.ToString());
     }
 
     protected override Task OnSseConnectionLostEvent(bool isFatal)
     {
-        if (DateTime.Now - _lastConnectionErrorTime > TimeSpan.FromSeconds(10))
+        if (DateTime.Now - _lastConnectionErrorTime > TimeSpan.FromSeconds(30))
         {
             _connectionErrorCount = 0;
             _lastConnectionErrorTime = DateTime.Now;
         }
-        if (_connectionErrorCount++ <= 3) return base.OnSseConnectionLostEvent(isFatal);
+        if (++_connectionErrorCount <= 3) return base.OnSseConnectionLostEvent(isFatal);
         _logger.LogError("Can't connect to Socket, shutting down.");
         _lifeCycleService.StopApplication();
 
         return base.OnSseConnectionLostEvent(isFatal);
     }
-
-    protected override async Task OnPairSignalEvent(string data)
-    {
-        await Raise(PairRequestEvent, this, data);
-    }
-
-    protected override async Task OnProfilesUpdatedEvent(ICollection<Profile> profiles)
-    {
-        await Raise(ProfilesUpdatedEvent, this, profiles);
-    }
-
-    public event Func<object, ICollection<Profile>, Task>? ProfilesUpdatedEvent;
-    public event Func<object, string, Task>? PairRequestEvent;
 }

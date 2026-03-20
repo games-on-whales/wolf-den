@@ -40,7 +40,7 @@ else
         }
 
         Profiles = Api.Profiles.ToList();
-        Api.ProfilesUpdatedEvent += OnProfilesUpdated;
+        Api.ProfilesUpdated += OnProfilesUpdated;
     }
     
     private async Task OnProfilesUpdated(object? caller, ICollection<Profile> profiles)
@@ -56,6 +56,6 @@ else
 
     public void Dispose()
     {
-        Api.ProfilesUpdatedEvent -= OnProfilesUpdated;
+        Api.ProfilesUpdated -= OnProfilesUpdated;
     }
 }

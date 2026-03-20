@@ -148,7 +148,6 @@
             _allowFormSubmit = true;
             return;
         }
-        Console.WriteLine("Submit");
 
         if (Api.Profiles is null) await Api.UpdateProfiles();
         var profile = Api.Profiles.FirstOrDefault(p => p.Id == _profileFormData.Id);

@@ -1,5 +1,6 @@
 @page "/Clients/Pairing"
 @implements IDisposable
+@using GamesOnWhales.SSE
 @using WolfLeash.Components.Pages.Clients.SubComponent
 @inject Api Api
 
@@ -32,10 +33,10 @@ else
         {
             await GetPairingRequests();
         }
-        Api.PairRequestEvent += OnClientPairRequestEvent;
+        Api.PairSignalEvent += OnClientPairRequestEvent;
     }
 
-    private async Task OnClientPairRequestEvent(object? caller, string json)
+    private async Task OnClientPairRequestEvent(object? caller, PairSignalEvent? _)
     {
         await GetPairingRequests();
         await InvokeAsync(StateHasChanged);
@@ -49,6 +50,6 @@ else
 
     public void Dispose()
     {
-        Api.PairRequestEvent -= OnClientPairRequestEvent;
+        Api.PairSignalEvent -= OnClientPairRequestEvent;
     }
 }
