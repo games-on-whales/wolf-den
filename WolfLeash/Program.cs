@@ -28,7 +28,13 @@ builder.Services.AddDbContext<WolfLeashDbContext>();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<EventLogger>();
 
+builder.Services.Configure<CompatibilityToolsOptions>(
+    builder.Configuration.GetSection(CompatibilityToolsOptions.SectionName));
+builder.Services.AddSingleton<CompatibilityToolsService>();
+
 var app = builder.Build();
+
+app.Services.GetRequiredService<CompatibilityToolsService>().ProvisionTargets();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

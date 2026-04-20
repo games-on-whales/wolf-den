@@ -1,0 +1,116 @@
+@page "/CompatibilityTools"
+@using WolfLeash.Components.Classes
+@inject CompatibilityToolsService Service
+@inject EventLogger EventLogger
+
+<h3>Compatibility Tools</h3>
+
+@if (Service.Targets.Count == 0)
+{
+    <p>No compatibility tool targets configured. Set <code>CompatibilityTools:Targets</code> in appsettings.json.</p>
+}
+else
+{
+    <Tabs EnableFadeEffect="true">
+        @foreach (var target in Service.Targets)
+        {
+            <Tab Title="@target.Name" IsActive="@(target.Name == _activeTargetName)">
+                <Content>
+                    @{ var exists = Service.TargetExists(target); }
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            Path: <code>@target.Path</code>
+                            @if (!exists)
+                            {
+                                <span class="text-warning"> — directory does not exist; it will be created on first upload.</span>
+                            }
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <CompatibilityToolUpload Target="@target" OnChanged="@(() => Refresh(target))" />
+                    </div>
+
+                    @{ var tools = _cache.TryGetValue(target.Name, out var c) ? c : Service.List(target); }
+
+                    @if (tools.Count == 0)
+                    {
+                        <p><em>No compatibility tools installed.</em></p>
+                    }
+                    else
+                    {
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Size</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tool in tools)
+                                {
+                                    <tr>
+                                        <td><code>@tool.Name</code></td>
+                                        <td>@FormatSize(tool.SizeBytes)</td>
+                                        <td class="text-end">
+                                            <Button Color="ButtonColor.Danger"
+                                                    @onclick="@(() => Delete(target, tool))">
+                                                Delete
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </Content>
+            </Tab>
+        }
+    </Tabs>
+}
+
+@code {
+    private readonly Dictionary<string, IReadOnlyList<CompatibilityTool>> _cache = new();
+    private string? _activeTargetName;
+
+    protected override void OnInitialized()
+    {
+        _activeTargetName = Service.Targets.FirstOrDefault()?.Name;
+        foreach (var t in Service.Targets)
+            _cache[t.Name] = Service.List(t);
+    }
+
+    private void Refresh(CompatibilityToolTarget target)
+    {
+        _cache[target.Name] = Service.List(target);
+        StateHasChanged();
+    }
+
+    private void Delete(CompatibilityToolTarget target, CompatibilityTool tool)
+    {
+        try
+        {
+            Service.Delete(target, tool.Name);
+            EventLogger.LogEvent(new ToastMessage(ToastType.Info, "",
+                "Removed", $"{DateTime.Now}",
+                $"Deleted {tool.Name} from {target.Name}."));
+            Refresh(target);
+        }
+        catch (Exception ex)
+        {
+            EventLogger.LogEvent(new ToastMessage(ToastType.Danger, "",
+                "Error", $"{DateTime.Now}",
+                $"Failed to delete {tool.Name}: {ex.Message}"));
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        string[] units = { "B", "KiB", "MiB", "GiB", "TiB" };
+        double value = bytes;
+        int u = 0;
+        while (value >= 1024 && u < units.Length - 1) { value /= 1024; u++; }
+        return $"{value:0.##} {units[u]}";
+    }
+}

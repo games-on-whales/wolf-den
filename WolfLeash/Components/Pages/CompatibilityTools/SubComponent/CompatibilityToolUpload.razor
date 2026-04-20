@@ -1,0 +1,69 @@
+@using WolfLeash.Components.Classes
+@inject CompatibilityToolsService Service
+@inject EventLogger EventLogger
+
+<div style="display:flex; flex-direction: row; justify-content: left; align-items: center; gap: 0.5rem;">
+    <a>Upload Archive:</a>
+    <label>
+        <InputFile accept=".tar.gz,.tgz,.tar.xz,.txz,.tar.bz2,.tbz2,.tar,.zip"
+                   OnChange="LoadFiles" multiple/>
+    </label>
+
+    @if (_isLoading)
+    {
+        <div style="width: 300px">
+            <Progress Class="mb-0">
+                <ProgressBar @ref="_progressBar"
+                             Type="ProgressType.StripedAndAnimated"
+                             Color="ProgressColor.Success" />
+            </Progress>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CompatibilityToolTarget Target { get; set; } = null!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private bool _isLoading;
+    private ProgressBar? _progressBar;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        var files = e.GetMultipleFiles(e.FileCount);
+        foreach (var file in files)
+        {
+            var name = file.Name;
+            if (!CompatibilityToolsService.IsSupported(name))
+            {
+                EventLogger.LogEvent(new ToastMessage(ToastType.Warning, "",
+                    "Unsupported", $"{DateTime.Now}",
+                    $"{name}: supported archives are {string.Join(", ", CompatibilityToolsService.SupportedExtensions)}."));
+                continue;
+            }
+
+            try
+            {
+                await using var stream = file.OpenReadStream(8L * 1024 * 1024 * 1024);
+                var dir = await Service.ExtractArchiveAsync(Target, stream, name);
+                EventLogger.LogEvent(new ToastMessage(ToastType.Info, "",
+                    "Installed", $"{DateTime.Now}",
+                    $"{name} -> {Path.GetFileName(dir)}"));
+                await OnChanged.InvokeAsync();
+                _progressBar?.IncreaseWidth(100.0 / files.Count);
+            }
+            catch (Exception ex)
+            {
+                EventLogger.LogEvent(new ToastMessage(ToastType.Danger, "",
+                    "Error", $"{DateTime.Now}",
+                    $"{name}: {ex.Message}"));
+            }
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+}
