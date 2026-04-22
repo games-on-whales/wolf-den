@@ -70,4 +70,48 @@ services:
       - /var/run/wolf:/var/run/wolf
       # Optional, enables Icon/Cover picker for Profiles/Apps.
       - /etc/wolf/covers:/etc/wolf/covers
+      # Optional, enables the Compatibility Tools page (Proton-GE, Luxtorpeda, etc.).
+      # Wolf Den will auto-create the per-OS subdirectories on startup.
+      - /etc/wolf/compatibilitytools.d:/etc/wolf/compatibilitytools.d
+```
+
+### Compatibility Tools
+
+Wolf Den can install and remove Steam-style compatibility tools (Proton-GE,
+Luxtorpeda, Boxtron, Roberta, etc.) into per-OS directories on the host. Upload
+accepts `.tar.gz`, `.tar.xz`, `.tar.bz2`, `.tar`, and `.zip` archives.
+
+The defaults in `appsettings.json` are:
+
+| OS Target | Host Path |
+| --- | --- |
+| Fedora 43 | `/etc/wolf/compatibilitytools.d/fedora43` |
+| Ubuntu    | `/etc/wolf/compatibilitytools.d/ubuntu` |
+
+With `/etc/wolf/compatibilitytools.d` mounted (see the compose example above),
+Wolf Den creates both subdirectories for you on first launch.
+
+> [!IMPORTANT]
+>
+> For Steam to *see* the installed tools, your Steam app's runner container
+> must mount the matching OS directory at Steam's
+> `compatibilitytools.d` location. Wolf Den cannot add this mount on your
+> behalf — it runs in its own container and does not have authority over
+> app-runner configuration.
+>
+> Add a mount to each Steam app via the **Apps → Edit → Advanced Options →
+> Mounts** field. For example, for a Fedora 43-based Steam app:
+>
+> ```
+> /etc/wolf/compatibilitytools.d/fedora43:/home/retro/.steam/root/compatibilitytools.d
+> ```
+>
+> (Adjust the container-side path to match your Steam image's user home.)
+
+To override the default targets, set them in `appsettings.json` or via
+environment variables, e.g.:
+
+```
+WOLF_CompatibilityTools__Targets__0__Name=Fedora 43
+WOLF_CompatibilityTools__Targets__0__Path=/etc/wolf/compatibilitytools.d/fedora43
 ```
