@@ -5,6 +5,8 @@ using WolfLeash.Components.Classes;
 using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
+using Microsoft.Extensions.Options;
+using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,8 @@ builder.Services.AddDbContext<WolfLeashDbContext>();
 
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<EventLogger>();
+
+builder.Services.AddDecompressionStrategies();
 
 builder.Services.Configure<CompatibilityToolsOptions>(
     builder.Configuration.GetSection(CompatibilityToolsOptions.SectionName));
