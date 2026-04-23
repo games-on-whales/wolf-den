@@ -13,7 +13,10 @@ public class GZipDecompressionStrategy : IDecompressionStrategy, IMultiStageDeco
     
     public List<string> GetSupportedCompressionFormat()
     {
-        return MultistepDecompressionStrategies.Keys.Select(k => $"{k}{FileExtension}").ToList();
+        return MultistepDecompressionStrategies.Values
+            // Prevent infinite loop if multiple MultistageDecompressionStrategy exists 
+            .Where(si => !si.GetType().IsAssignableTo(typeof(IMultiStageDecompressionStrategy))) 
+            .Select(x => x.FileExtension).ToList();
     }
 
     public IDecompressionStrategy GetNextDecompressionPass(string fileExtension)
