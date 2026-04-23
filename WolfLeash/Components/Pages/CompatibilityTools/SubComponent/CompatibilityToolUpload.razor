@@ -47,8 +47,17 @@
 
             try
             {
-                await using var stream = file.OpenReadStream(8L * 1024 * 1024 * 1024);
-                var dir = await Service.ExtractArchiveAsync(Target, stream, name);
+                var filePath = Path.Join(Target.Path, file.Name);
+                
+                await using var fs = File.Create(filePath);
+                await file.OpenReadStream(8L * 1024 * 1024 * 1024).CopyToAsync(fs);
+                fs.Close();
+                
+                await using var filestream = File.Open(filePath, FileMode.Open, FileAccess.Read);
+                var dir = await Service.ExtractArchiveAsync(Target, filestream, name);
+                filestream.Close();
+                File.Delete(filePath);
+                
                 EventLogger.LogEvent(new ToastMessage(ToastType.Info, "",
                     "Installed", $"{DateTime.Now}",
                     $"{name} -> {Path.GetFileName(dir)}"));
