@@ -2,6 +2,8 @@
 
 set -e
 
+export APP_UID=1000
+
 exit_script() {
     trap - SIGTERM SIGINT SIGQUIT SIGHUP ERR EXIT
     kill -- -$$
