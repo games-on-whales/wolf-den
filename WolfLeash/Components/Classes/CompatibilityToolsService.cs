@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using SharpCompress.Common;
 using SharpCompress.Readers;
+using WolfLeash.Components.Classes.DecompressionStrategy;
 
 namespace WolfLeash.Components.Classes;
 
@@ -8,18 +9,24 @@ public record CompatibilityTool(string Name, string Path, long SizeBytes);
 
 public class CompatibilityToolsService
 {
-    public static readonly string[] SupportedExtensions =
+    public static string[] SupportedExtensions { get; private set; } =
         [".tar.gz", ".tgz", ".tar.xz", ".txz", ".tar.bz2", ".tbz2", ".tar", ".zip"];
 
     private readonly IOptionsMonitor<CompatibilityToolsOptions> _options;
     private readonly ILogger<CompatibilityToolsService> _logger;
+    private readonly Dictionary<string, IDecompressionStrategy> _unpacktrategies;
 
     public CompatibilityToolsService(
         IOptionsMonitor<CompatibilityToolsOptions> options,
-        ILogger<CompatibilityToolsService> logger)
+        ILogger<CompatibilityToolsService> logger,
+        IEnumerable<IDecompressionStrategy> unpackStrategies)
     {
         _options = options;
         _logger = logger;
+
+        var strategies = unpackStrategies.ToList();
+        _unpacktrategies = strategies.ToDictionary(s => s.FileExtension, s => s);
+        SupportedExtensions = strategies.SelectMany(s => s.GetSupportedCompressionFormat()).ToArray();
     }
 
     public IReadOnlyList<CompatibilityToolTarget> Targets => _options.CurrentValue.Targets;
@@ -62,39 +69,19 @@ public class CompatibilityToolsService
                 $"Supported: {string.Join(", ", SupportedExtensions)}");
 
         Directory.CreateDirectory(target.Path);
+        
+        _unpacktrategies.TryGetValue(Path.GetExtension(originalFileName).ToLower(), out var unpacktrategie);
+        if (unpacktrategie is null)
+        {
+            throw new NotSupportedException($"Decompression strategy not supported: {Path.GetExtension(originalFileName)}");
+        }
 
-        var tempExtractRoot = Path.Combine(
-            target.Path,
-            $".wolfden-extract-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(tempExtractRoot);
-
+        var extensions = originalFileName[..^Path.GetExtension(originalFileName).Length];
+        var tempExtractRoot = "";
+        
         try
         {
-            await Task.Run(() =>
-            {
-                using var reader = ReaderFactory.Open(archiveStream);
-                var extractOptions = new ExtractionOptions
-                {
-                    ExtractFullPath = true,
-                    Overwrite = true,
-                    PreserveFileTime = true,
-                };
-
-                while (reader.MoveToNextEntry())
-                {
-                    ct.ThrowIfCancellationRequested();
-                    if (reader.Entry.IsDirectory) continue;
-
-                    var entryKey = reader.Entry.Key ?? "";
-                    if (IsUnsafeEntry(entryKey))
-                    {
-                        _logger.LogWarning("Skipping unsafe archive entry {Key}", entryKey);
-                        continue;
-                    }
-
-                    reader.WriteEntryToDirectory(tempExtractRoot, extractOptions);
-                }
-            }, ct);
+            tempExtractRoot = await unpacktrategie.DecompressAsync(target, archiveStream, extensions, Path.GetFileNameWithoutExtension(target.Path), ct);
 
             var entries = new DirectoryInfo(tempExtractRoot).GetFileSystemInfos();
             string finalDir;
