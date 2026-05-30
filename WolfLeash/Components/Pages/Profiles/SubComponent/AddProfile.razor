@@ -25,19 +25,25 @@
 <EditForm EditContext="_editContext" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
     <div class="form-group row mb-3">
+        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
             <TextInput @bind-Value="Data!.Name" Placeholder="Name"/>
             <ValidationMessage For="() => Data!.Name"/>
+        </div>
     </div>
     <div class="form-group row mb-3">
         <Tooltip Title="Icons can be links to a png, or png files in /etc/wolf/covers">
             <div class="form-group row mb-3">
-                <TextInput @bind-Value="Data!.IconPngPath" Placeholder="Icon"/>
+                <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                    <TextInput @bind-Value="Data!.IconPngPath" Placeholder="Icon"/>
+                </div>
             </div>
         </Tooltip>
         <ValidationMessage For="() => Data!.IconPngPath"/>
         @if(Directory.Exists("/etc/wolf/covers"))
         {
-            <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select Cover</Button>
+            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select Cover</Button>
+            </div>
         }
     </div>
 
@@ -63,12 +69,14 @@
     }
 
     <div>
-        <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Submit</Button>
+        <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Disabled="@_submitDisabled" @ref="_submitButton">Submit</Button>
     </div>
 </EditForm>
 </div>
 
 @code {
+    private bool _submitDisabled = false;
+    private Button? _submitButton = null!;
     private Offcanvas? _offCanvas = null!;
     private async Task OnShowOffCanvasClick()
     {
@@ -112,6 +120,12 @@
 
     private async Task Submit()
     {
+        if (_submitButton is not null)
+        {
+            _submitDisabled = true;
+            _submitButton.ShowLoading("Sending");
+        }
+        
         var newProfile = new Profile
         {
             Name = Data!.Name,
