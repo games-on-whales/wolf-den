@@ -1,3 +1,4 @@
+@using WolfLeash.Extensions
 @inject Api Api
 @inject WolfLeashDbContext Context
 
@@ -52,22 +53,34 @@
     [Parameter, EditorRequired] public ProfileAccordionItem Parent { get; set; }
     [Parameter, EditorRequired] public List<GamesOnWhales.App> Apps { get; set; } = null!;
     [Parameter, EditorRequired] public string ProfileId { get; set; }
-    public List<GamesOnWhales.App> allApps = null!;
+    public List<GamesOnWhales.App>? allApps = null!;
 
     protected override Task OnInitializedAsync()
     {
         Parent.AppsAccordionShowing = OnShowingAsync;
         return Task.CompletedTask;
     }
-
+    
     private async void OnShowingAsync()
     {
-        allApps ??= (await Api.GetProfiles()).SelectMany(p => p.Apps).Distinct().ToList() ?? [];
-        allApps.AddRange(Context
-            .Apps
-            .Include(a => a.Runner)
-            .ToList()
-            .Select(a => a.ToDto()));
+        allApps ??= (await Api.GetProfiles())
+            .SelectMany(p => p.Apps)
+            .Distinct()
+            .UniqueApps(Apps)
+            .ToList() ?? [];
+
+        var query = Context.Apps.Include(a => a.Runner).AsQueryable();
+        
+        foreach (var app in allApps)
+        {
+            query = query.Where(a => 
+                a.Title != app.Title
+                && a.AppId != app.Id);
+        }
+
+        var dbApps = await query.Select(a => a.ToDto()). ToListAsync();
+        
+        allApps.AddRange(dbApps);
     }
     
     private void OnProfileListUpdate(SortableListEventArgs args)
@@ -84,6 +97,7 @@
 
     private void OnAppListUpdate(SortableListEventArgs args)
     {
+        if(allApps is null) return;
         var itemToMove = allApps[args.OldIndex];
 
         allApps.RemoveAt(args.OldIndex);
@@ -101,6 +115,7 @@
 
     private void OnAppListRemove(SortableListEventArgs args)
     {
+        if(allApps is null) return;
         // get the item at the old index in list 2
         var item = allApps[args.OldIndex];
 
