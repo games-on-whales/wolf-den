@@ -22,6 +22,7 @@
 
         <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
         <PackageReference Include="Tomlyn" Version="0.20.0" />
+        <PackageReference Include="SharpCompress" Version="0.38.0" />
     </ItemGroup>
         
     <ItemGroup>

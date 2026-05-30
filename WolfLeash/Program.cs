@@ -4,6 +4,8 @@ using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
 using GamesOnWhales.SSE;
+using Microsoft.Extensions.Options;
+using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
 using App = WolfLeash.Components.App;
 
@@ -39,7 +41,15 @@ builder.Services.AddDbContext<WolfLeashDbContext>();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<EventLogger>();
 
+builder.Services.AddDecompressionStrategies();
+
+builder.Services.Configure<CompatibilityToolsOptions>(
+    builder.Configuration.GetSection(CompatibilityToolsOptions.SectionName));
+builder.Services.AddSingleton<CompatibilityToolsService>();
+
 var app = builder.Build();
+
+app.Services.GetRequiredService<CompatibilityToolsService>().ProvisionTargets();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
