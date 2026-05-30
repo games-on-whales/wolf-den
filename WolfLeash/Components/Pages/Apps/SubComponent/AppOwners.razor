@@ -3,33 +3,37 @@
 @inject WolfLeashDbContext Context
 
 <ConfirmDialog @ref="dialog" />
-
-@if (Profiles == null)
-{
-    <Spinner />
-}
-else
-{
-    @foreach (var profile in Profiles)
+<div style="display: inline-block">
+    @if (App is not null)
     {
-        <Badge Color="BadgeColor.Success" VisuallyHiddenText="">
-            @profile.Name
-            <a @onclick="@(_ => ConfirmAppDeletion(profile))">
-                <Icon Name="IconName.XCircle"/>
-            </a>
-        </Badge>
+        @if (Profiles == null)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            @foreach (var profile in Profiles)
+            {
+                <Badge Color="BadgeColor.Success" VisuallyHiddenText="">
+                    @profile.Name
+                    <a @onclick="@(_ => ConfirmAppDeletion(profile))">
+                        <Icon Name="IconName.XCircle"/>
+                    </a>
+                </Badge>
+            }
+        }
     }
-}
-
+</div>
 @code {
     [Inject] protected EventLogger EventLogger { get; set; } = null!;
-    [Parameter, EditorRequired] public App App { get; set; } = null!;
+    [Parameter, EditorRequired] public App? App { get; set; } = null!;
     public List<Profile>? Profiles = null;
 
     private ConfirmDialog dialog = default!;
     
     private async Task ConfirmAppDeletion(Profile profile)
     {
+        if(App is null) return;
         var confirmation = await dialog.ShowAsync(
             title: "Are you sure you want to Remove the App from the Profile?",
             //message1: "This will delete the App from all Profiles using it, and removes all tracking about it.",
@@ -43,6 +47,7 @@ else
     
     private async Task RemoveAppFromProfile(Profile profile)
     {
+        if(App is null) return;
         EventLogger.LogEvent(new ToastMessage(ToastType.Warning, "", "Profile edited", $"{DateTime.Now}", $"Removed {App.Title} from {profile.Name}"));
         profile.Apps.Remove(App);
         profile.Apps = profile.Apps.Where(p => p.Id != App.Id).ToList();
@@ -60,6 +65,7 @@ else
 
     private async Task SaveUnusedAppToDb(App app)
     {
+        if(App is null) return;
         Context.Apps.Add(App);
         
         try
@@ -79,6 +85,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        if(App is null) return;
+        
         if (Api.Profiles is null)
         {
             await Api.UpdateProfiles();
