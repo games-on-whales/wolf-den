@@ -49,7 +49,20 @@
         <TextInput @bind-Value="Data!.Image" Placeholder="Image"/>
         <ValidationMessage For="() => Data!.Image"/>
     </div>
-
+    
+    <div class="form-group row mb-3">
+    @if (Env is not null && Env.Values.Any(v => v.Contains("RUN_SWAY") || v.Contains("RUN_GAMESCOPE")))
+    {
+        _isSway = Env.Values.Any(e => e.Contains("RUN_SWAY=1") || e.Contains("RUN_SWAY=true"));
+        <Switch Class="mt-3" 
+                Value="!_isSway" 
+                Label="Use GameScope instead of Sway" 
+                ValueExpression="() => _isSway" 
+                ValueChanged="SwitchBetweenSwayAndGameScope" />
+        
+    }
+    </div>
+    
     <div class="form-group row mb-3">
         <Accordion Flush="true">
             <AccordionItem Title="Advanced Options">
@@ -103,6 +116,8 @@
 </div>
 
 @code {
+    private bool _isSway = true;
+    
     private Offcanvas? _offCanvas = null!;
     private async Task OnShowOffCanvasClick()
     {
@@ -294,4 +309,19 @@
         if (editContext is not null)
             editContext.OnValidationRequested -= HandleValidationRequested;
     }
+
+    private void SwitchBetweenSwayAndGameScope()
+    {
+        if (_isSway)
+        {
+            var i = Env.Values.FindIndex(v => v.Contains("RUN_SWAY"));
+            Env.Values[i] = "RUN_GAMESCOPE=true";
+        }
+        else
+        {
+            var i = Env.Values.FindIndex(v => v.Contains("RUN_GAMESCOPE"));
+            Env.Values[i] = "RUN_SWAY=true";
+        }
+    }
+
 }
