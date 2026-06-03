@@ -4,6 +4,7 @@
 @using WolfLeash.Extensions
 @using App = GamesOnWhales.App
 @inject EventLogger Event
+@inject DefaultAppLoader WildLifeApps
 
 @if(Directory.Exists("/etc/wolf/covers"))
 {
@@ -21,102 +22,124 @@
 }
 
 <div style="width: 500px">
-<EditForm EditContext="editContext" OnValidSubmit="Submit" xmlns="http://www.w3.org/1999/html">
-    <DataAnnotationsValidator />
-    <div class="form-group row mb-3">
-        <TextInput @bind-Value="Data!.Title" Placeholder="Title"/>
-        <ValidationMessage For="() => Data!.Title"/>
-    </div>
-    <div class="form-group row mb-3">
-        <Tooltip Title="Covers can be links to a png, or png files in /etc/wolf/covers">
-            <div class="form-group row mb-3">
-            <TextInput @bind-Value="Data!.IconPngPath" Placeholder="Icon"/>
-            </div>
-        </Tooltip>
-        <ValidationMessage For="() => Data!.IconPngPath"/>
-        @if(Directory.Exists("/etc/wolf/covers"))
-        {
-            <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select Cover</Button>
-        }
-    </div>
-
-    <h5>Runner Configuration:</h5>
-    <div class="form-group row mb-3">
-        <TextInput @bind-Value="Data!.RunnerName" Placeholder="Runner Name"/>
-        <ValidationMessage For="() => Data!.RunnerName"/>
-    </div>
-    <div class="form-group row mb-3">
-        <TextInput @bind-Value="Data!.Image" Placeholder="Image"/>
-        <ValidationMessage For="() => Data!.Image"/>
-    </div>
-    
-    <div class="form-group row mb-3">
-    @if (Env is not null && Env.Values.Any(v => v.Contains("RUN_SWAY") || v.Contains("RUN_GAMESCOPE")))
+    @if (WildlifeApps.Count > 0)
     {
-        _isSway = Env.Values.Any(e => e.Contains("RUN_SWAY=1") || e.Contains("RUN_SWAY=true"));
-        <Switch Class="mt-3" 
-                Value="!_isSway" 
-                Label="Use GameScope instead of Sway" 
-                ValueExpression="() => _isSway" 
-                ValueChanged="SwitchBetweenSwayAndGameScope" />
-        
+        <div class="form-group row mb-3">
+            <div style="display:flex; flex-direction: row; justify-content: start; align-items: center">
+                <span style="margin-right: 0.5em">Use Template:</span>
+                <Dropdown Color="DropdownColor.Secondary" Size="DropdownSize.Small">
+                    <DropdownToggleButton>Wildlife App</DropdownToggleButton>
+                    <DropdownMenu>
+                        @foreach (var app in WildlifeApps)
+                        {
+                            var wildlifeApp = app;
+                            <DropdownItem @onclick="@(() => TemplateAppSelected(wildlifeApp))">@app.Title</DropdownItem>
+                        }
+                    </DropdownMenu>
+                </Dropdown>
+            </div>
+        </div>
     }
-    </div>
     
-    <div class="form-group row mb-3">
-        <Accordion Flush="true">
-            <AccordionItem Title="Advanced Options">
-                <Content>
-                    <div class="form-group row mb-3">
-                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-                            <a>Start Virtual Compositor</a>
-                            <CheckboxInput @bind-Value="Data!.Start_virtual_compositor"/>
-                        </div>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-                            <a>Start Audio Server</a>
-                            <CheckboxInput @bind-Value="Data!.Start_audio_server"/>
-                        </div>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
-                            <TextInput @bind-Value="Data!.Render_node" Placeholder="Render Node"/>
-                            <ValidationMessage For="() => Data!.Render_node"/>
-                            <RenderDeviceDropdown @bind-Value="@Data!.Render_node"/>
-                        </div>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <TextArrayInput @ref="@Env" Validator="@EnvValidator" DefaultValues="@(["RUN_SWAY=true", "GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*"])" Placeholder="Env"/>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <TextArrayInput @ref="@Ports" Validator="@PortsValidator" Placeholder="Ports"/>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <TextArrayInput @ref="@Mounts" Validator="@MountsValidator" Placeholder="Mounts"/>
-                    </div>
-                    <div class="form-group row mb-3">
-                        <TextArrayInput @ref="@Devices" Validator="@DevicesValidator" Placeholder="Devices"/>
-                    </div>
+    
+    <EditForm EditContext="editContext" OnValidSubmit="Submit" xmlns="http://www.w3.org/1999/html">
+        <DataAnnotationsValidator/>
+        <div class="form-group row mb-3">
+            <TextInput @bind-Value="Data!.Title" Placeholder="Title"/>
+            <ValidationMessage For="() => Data!.Title"/>
+        </div>
+        <div class="form-group row mb-3">
+            <Tooltip Title="Covers can be links to a png, or png files in /etc/wolf/covers">
+                <div class="form-group row mb-3">
+                    <TextInput @bind-Value="Data!.IconPngPath" Placeholder="Icon"/>
+                </div>
+            </Tooltip>
+            <ValidationMessage For="() => Data!.IconPngPath"/>
+            @if (Directory.Exists("/etc/wolf/covers"))
+            {
+                <Button Color="ButtonColor.Primary" @onclick="OnShowOffCanvasClick">Select Cover</Button>
+            }
+        </div>
 
-                    <div class="form-group row mb-3">
-                        <h6>Base Create Json:</h6>
-                        <TextAreaInput @bind-Value="Data!.BaseCreateJson" Placeholder="Base Create Json" Rows="8"/>
-                        <ValidationMessage For="() => Data!.BaseCreateJson"/>
-                    </div>
-                </Content>
-            </AccordionItem>
-        </Accordion>
-    </div>
+        <h5>Runner Configuration:</h5>
+        <div class="form-group row mb-3">
+            <TextInput @bind-Value="Data!.RunnerName" Placeholder="Runner Name"/>
+            <ValidationMessage For="() => Data!.RunnerName"/>
+        </div>
+        <div class="form-group row mb-3">
+            <TextInput @bind-Value="Data!.Image" Placeholder="Image"/>
+            <ValidationMessage For="() => Data!.Image"/>
+        </div>
 
-    <div>
-        <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Submit</Button>
-    </div>
-</EditForm>
+        <div class="form-group row mb-3">
+            @if (Env is not null && Env.Values.Any(v => v.Contains("RUN_SWAY") || v.Contains("RUN_GAMESCOPE")))
+            {
+                _isSway = Env.Values.Any(e => e.Contains("RUN_SWAY=1") || e.Contains("RUN_SWAY=true"));
+                <Switch Class="mt-3"
+                        Value="!_isSway"
+                        Label="Use GameScope instead of Sway"
+                        ValueExpression="() => _isSway"
+                        ValueChanged="SwitchBetweenSwayAndGameScope"/>
+
+            }
+        </div>
+
+        <div class="form-group row mb-3">
+            <Accordion Flush="true">
+                <AccordionItem Title="Advanced Options">
+                    <Content>
+                        <div class="form-group row mb-3">
+                            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                                <a>Start Virtual Compositor</a>
+                                <CheckboxInput @bind-Value="Data!.Start_virtual_compositor"/>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                                <a>Start Audio Server</a>
+                                <CheckboxInput @bind-Value="Data!.Start_audio_server"/>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
+                                <TextInput @bind-Value="Data!.Render_node" Placeholder="Render Node"/>
+                                <ValidationMessage For="() => Data!.Render_node"/>
+                                <RenderDeviceDropdown @bind-Value="@Data!.Render_node"/>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <TextArrayInput @ref="@Env" Validator="@EnvValidator" DefaultValues="@(["RUN_SWAY=true", "GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*"])" Placeholder="Env"/>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <TextArrayInput @ref="@Ports" Validator="@PortsValidator" Placeholder="Ports"/>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <TextArrayInput @ref="@Mounts" Validator="@MountsValidator" Placeholder="Mounts"/>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <TextArrayInput @ref="@Devices" Validator="@DevicesValidator" Placeholder="Devices"/>
+                        </div>
+
+                        <div class="form-group row mb-3">
+                            <h6>Base Create Json:</h6>
+                            <TextAreaInput @bind-Value="Data!.BaseCreateJson" Placeholder="Base Create Json" Rows="8"/>
+                            <ValidationMessage For="() => Data!.BaseCreateJson"/>
+                        </div>
+                    </Content>
+                </AccordionItem>
+            </Accordion>
+        </div>
+
+        <div>
+            <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Submit</Button>
+        </div>
+    </EditForm>
 </div>
 
 @code {
     private bool _isSway = true;
+
+    private List<App> WildlifeApps = [];
     
     private Offcanvas? _offCanvas = null!;
     private async Task OnShowOffCanvasClick()
@@ -142,12 +165,13 @@
     private ValidationMessageStore? messageStore;
     private EditContext? editContext;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Data ??= new();
         editContext = new(Data);
         editContext.OnValidationRequested += HandleValidationRequested;
         messageStore = new(editContext);
+        WildlifeApps = await WildLifeApps.GetApps();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -166,6 +190,7 @@
         Ports.Values = AppToEdit.Runner.Ports?.ToList() ?? [];
         Mounts.Values = AppToEdit.Runner.Mounts?.ToList() ?? [];
         Devices.Values = AppToEdit.Runner.Devices?.ToList() ?? [];
+        
         StateHasChanged();
     }
 
@@ -322,6 +347,20 @@
             var i = Env.Values.FindIndex(v => v.Contains("RUN_GAMESCOPE"));
             Env.Values[i] = "RUN_SWAY=true";
         }
+    }
+
+    private void TemplateAppSelected(App app)
+    {
+        Data.Title = app.Title;
+        Data.Id = app.Id;
+        Data.IconPngPath = app.Icon_png_path;
+        Data.RunnerName = app.Runner.Name;
+        Data.Image = app.Runner.Image;
+        Data.BaseCreateJson = app.Runner.Base_create_json;
+        Env.Values = app.Runner.Env?.ToList() ?? [];
+        Ports.Values = app.Runner.Ports?.ToList() ?? [];
+        Mounts.Values = app.Runner.Mounts?.ToList() ?? [];
+        Devices.Values = app.Runner.Devices?.ToList() ?? [];
     }
 
 }
