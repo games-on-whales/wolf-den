@@ -45,7 +45,8 @@ else
     
     protected override async Task OnInitializedAsync()
     {
-        MainScreenApps ??= await Api.GetAppsAsync();
+        // TODO: Re-enable Moonlight Apps after Process runner work in the API client.
+        //MainScreenApps ??= await Api.GetAppsAsync();
         
         if (Api.Profiles is null)
             await Api.UpdateProfiles();
