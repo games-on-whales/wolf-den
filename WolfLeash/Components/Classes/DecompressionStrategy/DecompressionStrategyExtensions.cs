@@ -14,7 +14,7 @@ public static class DecompressionStrategyExtensions
                     .Select(d => d.ServiceKey)
                     .Where(s =>
                     {
-                        if(s?.GetType() != innerKey.GetType()) return true;
+                        if(s?.GetType() != innerKey!.GetType()) return true;
                         return s != innerKey;
                     })
                     .Select(k => provider.GetRequiredKeyedService<IDecompressionStrategy>(k));

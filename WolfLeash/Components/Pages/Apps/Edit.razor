@@ -16,16 +16,25 @@
     [Parameter]
     public string? AppId { get; set; }
     private GamesOnWhales.App? _app;
+    private bool _isMoonlightApp = false;
     
     AppForm? _addApp;
 
     private async Task OnSubmit(GamesOnWhales.App modifiedApp)
     {
+        if (_isMoonlightApp)
+        {
+            await Api.PostAppsDeleteAsync(modifiedApp.Id);
+            await Api.PostAppsAddAsync(modifiedApp);
+            NavigationManager.NavigateTo("/apps/show");
+            return;
+        }
+        
         var profiles = await Api.GetProfilesAsync();
         
         foreach (var profile in profiles.Where(p => p.Apps.Any(a => a.Id == modifiedApp.Id)))
         {
-            var apps = profile.Apps.Where(a => a.Id != _app.Id);
+            var apps = profile.Apps.Where(a => a.Id != _app!.Id);
             profile.Apps = apps.Append(modifiedApp).ToList();
             await Api.UpdateProfile(profile.Id, profile);
         }
@@ -36,7 +45,7 @@
             return;
         }
         
-        var oldApp = _app.Map(Context);
+        var oldApp = _app!.Map(Context);
         oldApp.Title = modifiedApp.Title;
         oldApp.AppId = modifiedApp.Id;
         oldApp.IconPngPath = modifiedApp.Icon_png_path;
@@ -74,5 +83,10 @@
             .Include(a => a.Runner)
             .FirstOrDefault(a => a.AppId == AppId)?
             .ToDto();
+        
+        if(_app is not null) return;
+
+        _app = (await Api.GetAppsAsync()).FirstOrDefault(a => a.Id == AppId);
+        _isMoonlightApp = true;
     }
 }

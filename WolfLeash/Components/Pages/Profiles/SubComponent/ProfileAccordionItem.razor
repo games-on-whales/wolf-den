@@ -148,7 +148,6 @@
             _allowFormSubmit = true;
             return;
         }
-        Console.WriteLine("Submit");
 
         if (Api.Profiles is null) await Api.UpdateProfiles();
         var profile = Api.Profiles.FirstOrDefault(p => p.Id == _profileFormData.Id);
@@ -163,6 +162,19 @@
             );
             return;
         }
+
+        var allDbApps = Context.Apps.ToList();
+        
+        foreach (var app in profile.Apps)
+        {
+            if(app is null) continue;
+            if (_appsAccordion.Apps.Any(aa => aa.Id == app.Id)) continue;
+            if(allDbApps.Any(a => a.AppId == app.Id)) continue;
+            
+            Context.Apps.Add(app);
+        }
+
+        await Context.SaveChangesAsync();
         
         profile.Name = _profileFormData.Name;
         profile.Icon_png_path = _profileFormData.IconPngPath;

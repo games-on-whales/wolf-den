@@ -20,29 +20,77 @@ else
     }
 }
 
+@if (MainScreenApps is not null)
+{
+    <br>
+    <h3>Moonlight Apps</h3>
+    <CardGroup>
+    @foreach (var app in MainScreenApps)
+    {
+        <MoonlightAppCard App="@app" />
+    }
+    @foreach (var _ in Enumerable.Range(0, ColumnSize - MainScreenApps.Count))
+    {
+        <MoonlightAppCard />
+    }
+    </CardGroup>
+}
+
 
 @code {
     [Parameter, EditorRequired] public int ColumnSize { get; set; } = 7;
     private List<GamesOnWhales.App>? Apps { get; set; } = null;
     //private ConfirmDialog dialog = default!;
-
+    private ICollection<GamesOnWhales.App>? MainScreenApps { get; set; } = null;
+    
     protected override async Task OnInitializedAsync()
     {
+        // TODO: Re-enable Moonlight Apps after Process runner work in the API client.
+        //MainScreenApps ??= await Api.GetAppsAsync();
+        
         if (Api.Profiles is null)
             await Api.UpdateProfiles();
 
         await OnProfilesUpdated(this, Api.Profiles.ToList());
-        Api.ProfilesUpdatedEvent += OnProfilesUpdated;
+        Api.ProfilesUpdated += OnProfilesUpdated;
     }
 
     private async Task OnProfilesUpdated(object caller, ICollection<Profile> profiles)
     {
         Apps?.Clear();
-        
-        Apps = profiles.SelectMany(p => p.Apps)
-            .DistinctBy(a => a.Id)
-            .ToList();
 
+        var apps = new List<GamesOnWhales.App>();
+
+        foreach (var app in profiles.SelectMany(p => p.Apps))
+        {
+            if(app is null) continue;
+            if(apps.Any(a => a.Id == app.Id)) continue;
+            if(apps.Any(a => 
+                   a.Title == app.Title &&
+                   a.Icon_png_path == app.Icon_png_path &&
+                   a.Runner.Base_create_json == app.Runner.Base_create_json &&
+                   a.Runner.Name == app.Runner.Name &&
+                   a.Runner.Image == app.Runner.Image &&
+                   a.Runner.Type == app.Runner.Type &&
+                   a.Runner.Devices.SequenceEqual(app.Runner.Devices) &&
+                   a.Runner.Mounts.SequenceEqual(app.Runner.Mounts) &&
+                   a.Runner.Env.SequenceEqual(app.Runner.Env) &&
+                   a.Runner.Ports.SequenceEqual(app.Runner.Ports)))
+                continue;
+            
+            apps.Add(app);
+        }
+        
+        Apps = apps;
+        
+        var query = Context.Apps.Include(a => a.Runner).AsQueryable();
+        foreach (var app in Apps)
+        {
+            query = query.Where(a => a.AppId == app.Id);
+        }
+        Context.Apps.RemoveRange(query);
+        await Context.SaveChangesAsync();
+        
         var dbApps = Context
             .Apps
             .Include(a => a.Runner)
@@ -56,6 +104,7 @@ else
 
     public void Dispose()
     {
-        Api.ProfilesUpdatedEvent -= OnProfilesUpdated;
+        Api.ProfilesUpdated -= OnProfilesUpdated;
     }
+    
 }

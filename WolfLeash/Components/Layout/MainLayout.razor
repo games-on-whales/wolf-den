@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using GamesOnWhales.SSE
 @implements IDisposable
 @inject Api Api
 
@@ -38,10 +39,10 @@
 
     protected override void OnInitialized()
     {
-        Api.PairRequestEvent += OnClientPairRequestEvent;
+        Api.PairSignalEvent += OnClientPairRequestEvent;
     }
 
-    private async Task OnClientPairRequestEvent(object? caller, string json)
+    private async Task OnClientPairRequestEvent(object? caller, PairSignalEvent? _)
         => await InvokeAsync(ShowPairRequestToast);
 
     private void ShowPairRequestToast()
@@ -95,6 +96,6 @@
 
     public void Dispose()
     {
-        Api.PairRequestEvent -= OnClientPairRequestEvent;
+        Api.PairSignalEvent -= OnClientPairRequestEvent;
     }
 }

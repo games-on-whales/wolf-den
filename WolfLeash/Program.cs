@@ -1,13 +1,13 @@
-using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
-using WolfLeash.Components;
 using WolfLeash.Components.Classes;
 using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
+using GamesOnWhales.SSE;
 using Microsoft.Extensions.Options;
 using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
+using App = WolfLeash.Components.App;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("WOLF_");
@@ -18,9 +18,20 @@ builder.WebHost.UseStaticWebAssets();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddLogging(configure => configure.AddConsole());
+builder.Services.AddLogging(configure =>
+{
+    configure.AddConsole();
+#if DEBUG
+    configure.AddFilter("GamesOnWhales", LogLevel.Debug);
+#endif
+});
+
 builder.Services.AddTransient<ColorGenerator>();
+
+builder.Services.AddTransient<ISseEventHandler, PairSignalEventHandler>();
 builder.Services.AddWolfApi<Api>();
+
+builder.Services.AddSingleton<DefaultAppLoader>();
 
 var migrationPatcher = new DatabasePreMigrationPatches();
 migrationPatcher.Execute();

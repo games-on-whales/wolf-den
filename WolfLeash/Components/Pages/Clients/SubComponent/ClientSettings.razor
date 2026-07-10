@@ -4,36 +4,36 @@
 <div class="d-flex flex-row mb-3">
     <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
         <a style="white-space: nowrap">User and Group Id:</a>
-        <NumberInput TValue="int" @bind-Value="_formData.Run_uid" Min="0" Max="2097151" Placeholder="1000" />
+        <NumberInput TValue="int" @bind-Value="_formData.RunUid" Min="0" Max="2097151" Placeholder="1000" />
         <a>:</a>
-        <NumberInput TValue="int" @bind-Value="_formData.Run_gid" Min="0" Max="2097151" Placeholder="1000" />
+        <NumberInput TValue="int" @bind-Value="_formData.RunGid" Min="0" Max="2097151" Placeholder="1000" />
     </div>
 </div>
 
 <div class="d-flex flex-row mb-3">
     <a style="white-space: nowrap">Mouse Acceleration:</a>
-    <RangeInput TValue="double" @bind-Value="_formData.Mouse_acceleration" Min="0.01" Max="4" Step="0.01" />
+    <RangeInput TValue="double" @bind-Value="_formData.MouseAcceleration" Min="0.01" Max="4" Step="0.01" />
     <Badge Color="BadgeColor.Primary"
            VisuallyHiddenText="Mouse Acceleration">
-        @($"{_formData.Mouse_acceleration:0.00}")
+        @($"{_formData.MouseAcceleration:0.00}")
     </Badge>
 </div>
 
 <div class="d-flex flex-row mb-3">
     <a style="white-space: nowrap">V-Scroll Acceleration:</a>
-    <RangeInput TValue="double" @bind-Value="_formData.V_scroll_acceleration" Min="0.01" Max="4" Step="0.01"/>
+    <RangeInput TValue="double" @bind-Value="_formData.VScrollAcceleration" Min="0.01" Max="4" Step="0.01"/>
     <Badge Color="BadgeColor.Primary"
            VisuallyHiddenText="Mouse Acceleration">
-        @($"{_formData.V_scroll_acceleration:0.00}")
+        @($"{_formData.VScrollAcceleration:0.00}")
     </Badge>
 </div>
 
 <div class="d-flex flex-row mb-3">
     <a style="white-space: nowrap">H-Scroll Acceleration:</a>
-    <RangeInput TValue="double" @bind-Value="_formData.H_scroll_acceleration" Min="0.01" Max="4" Step="0.01"/>
+    <RangeInput TValue="double" @bind-Value="_formData.HScrollAcceleration" Min="0.01" Max="4" Step="0.01"/>
     <Badge Color="BadgeColor.Primary"
            VisuallyHiddenText="Mouse Acceleration">
-        @($"{_formData.H_scroll_acceleration:0.00}")
+        @($"{_formData.HScrollAcceleration:0.00}")
     </Badge>
 </div>
 
@@ -54,13 +54,13 @@
         </Dropdown>
     </div>
 
-    @foreach (var controller in _formData.Controllers_override.Index())
+    @foreach (var controller in _formData.ControllersOverride.Index())
     {
         var value = $"#{controller.Index + 1}: {ControllerDisplayNames[controller.Item]}";
         <div class="form-group row mb-3">
             <div style="display:flex; flex-direction: row; justify-content: left; align-items: center">
                 <TextInput Disabled="true" @bind-Value="value"/>
-                <Button @onclick="@(_ => { _formData.Controllers_override.RemoveAt(controller.Index); })" Color="ButtonColor.None">
+                <Button @onclick="@(_ => { _formData.ControllersOverride.RemoveAt(controller.Index); })" Color="ButtonColor.None">
                     <Icon Name="IconName.XCircleFill" Color="IconColor.Danger"/>
                 </Button>
             </div>
@@ -84,12 +84,12 @@
     {
         _formData = new ClientSettingsFormData()
         {
-            Controllers_override = Client.Settings.Controllers_override.ToList(),
-            Mouse_acceleration = Client.Settings.Mouse_acceleration,
-            V_scroll_acceleration = Client.Settings.V_scroll_acceleration,
-            H_scroll_acceleration = Client.Settings.H_scroll_acceleration,
-            Run_gid = Client.Settings.Run_gid,
-            Run_uid = Client.Settings.Run_uid
+            ControllersOverride = Client.Settings.Controllers_override.ToList(),
+            MouseAcceleration = Client.Settings.Mouse_acceleration,
+            VScrollAcceleration = Client.Settings.V_scroll_acceleration,
+            HScrollAcceleration = Client.Settings.H_scroll_acceleration,
+            RunGid = Client.Settings.Run_gid,
+            RunUid = Client.Settings.Run_uid
         };
         return Task.CompletedTask;
     }
@@ -104,7 +104,7 @@
 
     private void AddControllerOverride(Controllers_override2 controller)
     {
-        _formData.Controllers_override.Add(controller);
+        _formData.ControllersOverride.Add(controller);
     }
 
     private async Task Save()
@@ -115,14 +115,14 @@
             App_state_folder = Client.App_state_folder,
             Settings = new PartialClientSettings()
             {
-                Mouse_acceleration = _formData.Mouse_acceleration,
-                H_scroll_acceleration = _formData.H_scroll_acceleration,
-                V_scroll_acceleration = _formData.V_scroll_acceleration,
-                Run_gid = _formData.Run_gid,
-                Run_uid = _formData.Run_uid,
+                Mouse_acceleration = _formData.MouseAcceleration,
+                H_scroll_acceleration = _formData.HScrollAcceleration,
+                V_scroll_acceleration = _formData.VScrollAcceleration,
+                Run_gid = _formData.RunGid,
+                Run_uid = _formData.RunUid,
                 AdditionalProperties = new Dictionary<string, object>() // Todo: Change to Correct typed field when the binding is Fixed.
                 {
-                    { "controllers_override", _formData.Controllers_override.Select(co => co.ToString()).ToArray() }
+                    { "controllers_override", _formData.ControllersOverride.Select(co => co.ToString()).ToArray() }
                 }
             }
         });
@@ -139,11 +139,11 @@
     
     private class ClientSettingsFormData
     {
-        public List<Controllers_override2> Controllers_override { get; set; }
-        public double Mouse_acceleration { get; set; }
-        public double V_scroll_acceleration { get; set; }
-        public double H_scroll_acceleration { get; set; }
-        public int Run_uid { get; set; }
-        public int Run_gid { get; set; }
+        public List<Controllers_override2> ControllersOverride { get; init; } = [];
+        public double MouseAcceleration { get; set; } = 1.0;
+        public double VScrollAcceleration { get; set; } = 1.0;
+        public double HScrollAcceleration { get; set; } = 1.0;
+        public int RunUid { get; set; } = 1000;
+        public int RunGid { get; set; } = 1000;
     }
 }
