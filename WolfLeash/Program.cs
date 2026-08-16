@@ -4,6 +4,7 @@ using WolfLeash.Database;
 using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
 using GamesOnWhales.SSE;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.Extensions.Options;
 using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
@@ -16,7 +17,13 @@ builder.WebHost.UseStaticWebAssets();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development")
+            options.DetailedErrors = false;
+        
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromSeconds(30);
+    });
 
 builder.Services.AddLogging(configure =>
 {
@@ -27,6 +34,9 @@ builder.Services.AddLogging(configure =>
 });
 
 builder.Services.AddTransient<ColorGenerator>();
+
+builder.Services.AddSingleton<ActiveUserManager>();
+builder.Services.AddScoped<CircuitHandler, BlazorConnectionTracker>();
 
 builder.Services.AddTransient<ISseEventHandler, PairSignalEventHandler>();
 builder.Services.AddWolfApi<Api>();
