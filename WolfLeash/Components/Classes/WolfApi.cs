@@ -4,17 +4,24 @@ using GamesOnWhales.SSE;
 
 namespace WolfLeash.Components.Classes;
 
-public class Api : WolfApi
+public class Api : WolfApi, IDisposable
 {
     private readonly ILogger<WolfApi> _logger;
     private readonly IHostApplicationLifetime _lifeCycleService;
+    private readonly ActiveUserManager _activeUserManager;
     private int _connectionErrorCount = 0;
     private DateTime _lastConnectionErrorTime = DateTime.MinValue;
     
-    public Api(ILogger<WolfApi> logger, IConfiguration configuration, IEnumerable<ISseEventHandler> handlers, IHostApplicationLifetime lifetime) : 
+    public Api(
+        ILogger<WolfApi> logger, 
+        IConfiguration configuration, 
+        IEnumerable<ISseEventHandler> handlers, 
+        IHostApplicationLifetime lifetime,
+        ActiveUserManager activeUserManager) : 
         base(logger, configuration, handlers)
     {
         _lifeCycleService = lifetime;
+        _activeUserManager = activeUserManager;
         _logger = logger;
         
         var builder = new StringBuilder();
@@ -26,6 +33,17 @@ public class Api : WolfApi
         builder.Length -= builder.Length > 0 ? 1 : 0;
         
         logger.LogInformation("Listening for: \n{event}", builder.ToString());
+        
+        _activeUserManager.OnActivityStateChanged += ActiveUserManagerOnOnActivityStateChanged;
+    }
+
+    private async void ActiveUserManagerOnOnActivityStateChanged(bool hasUser)
+    {
+        _logger.LogDebug("OnActivityStateChanged {users}", hasUser);
+        if (hasUser)
+            await StartAsync(CancellationToken.None);
+        else
+            await StopAsync(CancellationToken.None);
     }
 
     protected override Task OnSseConnectionLostEvent(bool isFatal)
@@ -40,5 +58,11 @@ public class Api : WolfApi
         _lifeCycleService.StopApplication();
 
         return base.OnSseConnectionLostEvent(isFatal);
+    }
+
+    public void Dispose()
+    {
+        _activeUserManager.OnActivityStateChanged -= ActiveUserManagerOnOnActivityStateChanged;
+        GC.SuppressFinalize(this);
     }
 }
