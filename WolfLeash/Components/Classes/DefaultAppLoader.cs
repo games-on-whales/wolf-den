@@ -63,8 +63,10 @@ public partial class DefaultAppLoader
         var cfg = await GetAppConfigAsync(appName, cancellationToken);
         if (string.IsNullOrEmpty(cfg)) return null;
         
-        var model = ((TomlTableArray)Toml.ToModel(cfg)["apps"])[0];
-        var runner = (TomlTable)model["runner"];
+        var model = ((TomlTableArray)TomlSerializer.Deserialize<TomlTable>(cfg)!["apps"])[0];
+        
+        //var model = ((TomlTableArray)Toml.ToModel(cfg)["apps"])[0];
+        var runner = (TomlTable)model!["runner"];
         var app = new GamesOnWhales.App()
         {
             Id = Guid.NewGuid().ToBase64(),
