@@ -148,9 +148,8 @@
             _allowFormSubmit = true;
             return;
         }
-
-        if (Api.Profiles is null) await Api.UpdateProfiles();
-        var profile = Api.Profiles.FirstOrDefault(p => p.Id == _profileFormData.Id);
+        
+        var profile = (await Api.GetProfilesAsync()).FirstOrDefault(p => p.Id == _profileFormData.Id);
         if (profile is null)
         {
             EventLogger.LogEvent(new ToastMessage(ToastType.Info,
@@ -230,7 +229,7 @@
         // Todo: Check for orphaned Apps and save them for eventual reuse.
         
         await Api.DeleteProfile(_profileFormData.Id);
-        await Api.UpdateProfiles();
+        //await Api.UpdateProfiles();
         EventLogger.LogEvent(new ToastMessage(ToastType.Info,
                 "",
                 "Information",

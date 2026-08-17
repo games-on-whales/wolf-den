@@ -54,7 +54,7 @@
 
         await Api.UpdateProfile(profile.Id, profile);
 
-        Profiles = Api.Profiles!.Where(p => p.Apps.Any(a => a.Id == App.Id)).ToList();
+        Profiles = (await Api.GetProfilesAsync())!.Where(p => p.Apps.Any(a => a.Id == App.Id)).ToList();
 
         if (Profiles.Count <= 0)
         {
@@ -87,12 +87,7 @@
     {
         if(App is null) return;
         
-        if (Api.Profiles is null)
-        {
-            await Api.UpdateProfiles();
-        }
-
-        Profiles = Api.Profiles
+        Profiles = (await Api.GetProfilesAsync())
             .Where(p =>
                 p.Apps.Any(a => 
                     a.Title == App.Title &&

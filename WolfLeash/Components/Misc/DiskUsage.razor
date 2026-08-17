@@ -19,17 +19,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (Api.Profiles is null)
-            await Api.UpdateProfiles();
-
-        var profiles = Api.Profiles?
+        var profiles = (await Api.GetProfilesAsync())?
             .Select(p => (p.Name, DirSize($"/etc/wolf/profile-data/{p.Id}")))
             .Select(t => ($"{t.Name}", t.Item2))
             .ToList() ?? [];
 
         Api.GeneratedClient.ReadResponseAsString = true;
         
-        var tasks = Api.Profiles?
+        var tasks = (await Api.GetProfilesAsync())?
             .SelectMany(p => p.Apps)
             .Select(a => a.Runner.Image)
             .Distinct()

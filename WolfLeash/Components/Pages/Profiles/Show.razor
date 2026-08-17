@@ -34,12 +34,7 @@ else
     
     protected override async Task OnInitializedAsync()
     {
-        if (Api.Profiles == null)
-        {
-            await Api.UpdateProfiles();
-        }
-
-        Profiles = Api.Profiles.ToList();
+        Profiles = (await Api.GetProfilesAsync()).ToList();
         Api.ProfilesUpdated += OnProfilesUpdated;
     }
     
@@ -52,7 +47,10 @@ else
     }
 
     private async Task AddNewProfile() => await _modal.ShowAsync();
-    private async Task OnProfilesModified() => await Api.UpdateProfiles();
+    private async Task OnProfilesModified()
+    {
+        //await Api.UpdateProfiles();
+    }
 
     public void Dispose()
     {

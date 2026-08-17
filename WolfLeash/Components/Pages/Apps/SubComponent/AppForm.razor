@@ -351,6 +351,7 @@
 
     private void TemplateAppSelected(App app)
     {
+        if(Data is null) return;
         Data.Title = app.Title;
         Data.Id = app.Id;
         Data.IconPngPath = app.Icon_png_path;

@@ -10,13 +10,8 @@ public static class AppExtensions
 {
     public static async Task Delete(this GamesOnWhales.App app, GamesOnWhales.WolfApi api, WolfLeashDbContext context)
     {
-        if (api.Profiles is null)
-        {
-            await api.UpdateProfiles();
-        }
-        
         bool found = false;
-        foreach (var owner in api.Profiles)
+        foreach (var owner in await api.GetProfilesAsync())
         { 
             var del = owner.Apps.FirstOrDefault(a => a.Identical(app));
             if(del is null)

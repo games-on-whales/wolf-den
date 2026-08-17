@@ -48,10 +48,7 @@ else
         // TODO: Re-enable Moonlight Apps after Process runner work in the API client.
         //MainScreenApps ??= await Api.GetAppsAsync();
         
-        if (Api.Profiles is null)
-            await Api.UpdateProfiles();
-
-        await OnProfilesUpdated(this, Api.Profiles.ToList());
+        await OnProfilesUpdated(this, (await Api.GetProfilesAsync()).ToList());
         Api.ProfilesUpdated += OnProfilesUpdated;
     }
 

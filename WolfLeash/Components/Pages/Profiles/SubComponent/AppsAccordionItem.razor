@@ -63,7 +63,7 @@
     
     private async void OnShowingAsync()
     {
-        allApps ??= (await Api.GetProfiles())
+        allApps ??= (await Api.GetProfilesAsync())
             .SelectMany(p => p.Apps)
             .Distinct()
             .UniqueApps(Apps)
