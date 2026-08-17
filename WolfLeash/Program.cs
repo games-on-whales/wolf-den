@@ -5,12 +5,18 @@ using Api = WolfLeash.Components.Classes.Api;
 using GamesOnWhales.Extensions;
 using GamesOnWhales.SSE;
 using Microsoft.AspNetCore.Components.Server.Circuits;
-using Microsoft.Extensions.Options;
 using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
 using App = WolfLeash.Components.App;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.Sources.Clear();
+
+// Re-add appsettings.json but explicitly disable reloadOnChange
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddEnvironmentVariables("WOLF_");
 
 builder.WebHost.UseStaticWebAssets();

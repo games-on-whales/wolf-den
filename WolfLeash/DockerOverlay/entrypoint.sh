@@ -28,6 +28,10 @@ WOLF_SOCKET_PATH=${WOLF_SOCKET_PATH:-/var/run/wolf/wolf.sock}
 socat UNIX-LISTEN:/app/wolf.sock,mode=600,user=${APP_UID},group=${APP_UID},reuseaddr,fork UNIX-CONNECT:${WOLF_SOCKET_PATH} 2> /dev/null &
 export "WOLF_SOCKET_PATH=unix:///app/wolf.sock"
 
+export "DOTNET_EnableDiagnostics=0"
+export "DOTNET_DisableMetrics=1"
+export "DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0"
+
 echo "Starting Server"
 exec gosu "${APP_UID}" dotnet WolfLeash.dll &
 wait $!
