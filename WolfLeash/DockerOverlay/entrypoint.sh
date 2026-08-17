@@ -25,7 +25,7 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 WOLF_SOCKET_PATH=${WOLF_SOCKET_PATH:-/var/run/wolf/wolf.sock}
-socat UNIX-LISTEN:/app/wolf.sock,mode=600,user=${APP_UID},group=${APP_UID},reuseaddr,fork UNIX-CONNECT:${WOLF_SOCKET_PATH} 2> /dev/null &
+socat UNIX-LISTEN:/app/wolf.sock,mode=600,user=${APP_UID},group=${APP_UID},reuseaddr,fork UNIX-CONNECT:"${WOLF_SOCKET_PATH}" 2> /dev/null &
 export "WOLF_SOCKET_PATH=unix:///app/wolf.sock"
 
 export "DOTNET_EnableDiagnostics=0"
