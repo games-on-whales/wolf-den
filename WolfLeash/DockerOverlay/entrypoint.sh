@@ -32,6 +32,16 @@ export "DOTNET_EnableDiagnostics=0"
 export "DOTNET_DisableMetrics=1"
 export "DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0"
 
+# maximum token bucket limit
+if [ -z "$WOLF_API_TOKEN_LIMIT" ]; then
+  export "WOLF_API_TOKEN_LIMIT=15"
+fi
+
+# amount of allowed requests added to the bucket per 100ms
+if [ -z "$WOLF_API_TOKEN_PER_INTERVAL" ]; then
+  export "WOLF_API_TOKEN_PER_INTERVAL=5"
+fi
+
 echo "Starting Server"
 exec gosu "${APP_UID}" dotnet WolfLeash.dll &
 wait $!
