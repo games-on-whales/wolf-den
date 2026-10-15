@@ -1,23 +1,36 @@
 @inject Api Api
+@inject WolfLeashDbContext Context
 
-<a>Client Address: @Client.Client_ip</a>
-<div class="mb-3">
-    <PasswordInput @bind-Value="@Pin" />
-    <Button @onclick="@SendPairingPin" Color="ButtonColor.Primary">Pair</Button>
-</div>
+<Card>
+    <CardBody>
+        <CardTitle><a>Client Address: @Client.Client_ip</a></CardTitle>
+        <CardText>
+            <div class="ppi-container mb-0">
+                @*<div class="mb-3">
+                    <TextInput @bind-Value="@Alias" Placeholder="Name"/>
+                </div>*@
+                <div class="mb-3">Pin:</div>
+                <div class="mb-3">
+                    <OTPInput Length="4" OnOTPCompleted="SendPairingPin" OnOTPChanged="Mute"/>
+                </div>
+            </div>
+        </CardText>
+    </CardBody>
+</Card>
 
 @code {
     [Parameter, EditorRequired] public PendingPairClient Client { get; set; }
     [Parameter, EditorRequired] public EventCallback<PendingPairClient> OnClientPaired { get; set; }
     [Inject] private EventLogger EventLogger { get; set; } = null!;
-    private string Pin { get; set; } = string.Empty;
-
-    private async Task SendPairingPin()
+    //private string Pin { get; set; } = string.Empty;
+    private string Alias { get; set; } = string.Empty;
+    
+    private async Task SendPairingPin(string otp)
     {
         var result = await Api.GeneratedClient.ClientAsync(new PairRequest()
         {
             Pair_secret = Client.Pair_secret,
-            Pin = Pin
+            Pin = otp
         });
 
         if (!result.Success)
@@ -30,7 +43,22 @@
                 $"Pairing for Client: {Client.Client_ip} was Unsuccessful"));
             return;
         }
-
+        
+        /*var dbClient = Context.Clients.FirstOrDefault(c => c.Id == Client.Client_id);
+        if (dbClient is null)
+        {
+            Context.Clients.Add(new Client
+            {
+                Id = Client.Client_id,
+                Alias = Alias
+            });
+        }
+        else
+        {
+            dbClient.Alias = Alias;
+        }
+        await Context.SaveChangesAsync();*/
+        
         EventLogger.LogEvent(new ToastMessage(
             ToastType.Success,
             IconName.CheckCircle,
@@ -40,4 +68,8 @@
 
         await OnClientPaired.InvokeAsync(Client);
     }
+
+    private void Mute()
+    { }
+
 }
