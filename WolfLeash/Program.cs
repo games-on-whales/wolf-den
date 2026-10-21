@@ -7,6 +7,9 @@ using GamesOnWhales.SSE;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using WolfLeash.Components.Classes.DecompressionStrategy;
 using WolfLeash.Patches;
+using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Forwarder;
+using Yarp.ReverseProxy.Transforms;
 using App = WolfLeash.Components.App;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +36,49 @@ builder.Services.AddLogging(configure =>
 #endif
 });
 
+builder.Services.AddSingleton<IForwarderHttpClientFactory, ReverseProxyHtmlInjectionClientFactory>();
+
+builder.Services.AddReverseProxy()
+    .LoadFromMemory(
+        routes:
+        [
+            new RouteConfig
+            {
+                RouteId = "moonlight-route",
+                ClusterId = "moonlight-cluster",
+                Match = new RouteMatch
+                {
+                    Path = "/moonlight/{**catch-all}"
+                }
+            }
+        ],
+        clusters:
+        [
+            new ClusterConfig
+            {
+                ClusterId = "moonlight-cluster",
+                Destinations = new Dictionary<string, DestinationConfig>
+                {
+                    { "destination1", new DestinationConfig { Address = "http://127.0.0.1:8088/" } }
+                }
+            }
+        ]
+    )
+    .AddTransforms(transformBuilder =>
+    {
+        transformBuilder.AddRequestTransform(transformContext =>
+        {
+            // Don't change the header if its already set.
+            if (transformContext.ProxyRequest.Headers.Contains("X-Forwarded-User")) return ValueTask.CompletedTask;
+            
+            transformContext.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-User", "wolf-den");
+            return ValueTask.CompletedTask;
+        });
+    });
+
+builder.Logging.AddFilter("Yarp.ReverseProxy", LogLevel.Error);
+
+builder.Services.AddSingleton<MoonlightWebService>();
 builder.Services.AddTransient<ColorGenerator>();
 
 builder.Services.AddSingleton<ActiveUserManager>();
@@ -40,6 +86,8 @@ builder.Services.AddScoped<CircuitHandler, BlazorConnectionTracker>();
 
 builder.Services.AddTransient<ISseEventHandler, PairSignalEventHandler>();
 builder.Services.AddWolfApi<Api>();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<DefaultAppLoader>();
 
@@ -91,5 +139,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapReverseProxy();
 
 app.Run();
