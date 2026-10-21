@@ -27,6 +27,7 @@
         <PackageReference Include="System.Data.SQLite" Version="2.0.4" />
         <PackageReference Include="Tomlyn" Version="2.10.1" />
         <PackageReference Include="SharpCompress" Version="0.50.4" />
+        <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
     </ItemGroup>
         
     <ItemGroup>

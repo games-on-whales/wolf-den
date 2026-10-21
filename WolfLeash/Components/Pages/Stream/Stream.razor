@@ -1,0 +1,51 @@
+@page "/stream"
+@implements IDisposable
+
+@inject IJSRuntime JS
+@inject MoonlightWebService MoonlightWeb
+
+@if (MoonlightWeb.IsRunning)
+{
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <span>Game Streaming Session</span>
+            <div>
+                <!-- Button to manually reset/return to dashboard instantly -->
+                <button class="btn btn-sm btn-outline-light me-2" @onclick="ReturnToDashboard">
+                    <i class="bi bi-arrow-clockwise"></i> Return to Dashboard
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <iframe id="moonlight-frame" 
+                    src="/moonlight/" 
+                    style="width: 100%; height: 80vh; border: none;"
+                    allow="fullscreen; gamepad; keyboard-lock; microphone">
+            </iframe>
+        </div>
+    </div>
+}
+else
+{
+    <a>Starting Moonlight-Web</a>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await MoonlightWeb.Start();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task ReturnToDashboard()
+    {
+        // Programmatically reset the iframe URL back to the moonlight home/dashboard
+        await JS.InvokeVoidAsync("eval", "document.getElementById('moonlight-frame').src = '/moonlight/';");
+    }
+    
+    public void Dispose()
+    {
+        MoonlightWeb.Stop();
+    }
+
+}
