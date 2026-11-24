@@ -1,0 +1,14 @@
+.ppi-container {
+    position: relative;
+    padding: 1rem;
+    margin-top: 1rem;
+    border: solid #dee2e6;
+    border-width: 0px;
+
+}
+
+.ppi-container::after {
+    display: block;
+    clear: both;
+    content: ""
+}

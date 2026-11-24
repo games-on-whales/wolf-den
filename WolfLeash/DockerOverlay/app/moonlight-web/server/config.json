@@ -1,0 +1,68 @@
+{
+  "data_storage": {
+    "type": "json",
+    "path": "/app/wolf-den/moonlight-web-data.json",
+    "session_expiration_check_interval": {
+      "secs": 300,
+      "nanos": 0
+    }
+  },
+  "webrtc": {
+    "ice_servers": [
+      {
+        "urls": [
+          "stun:stun.l.google.com:19302",
+          "stun:stun.l.google.com:5349",
+          "stun:stun1.l.google.com:3478",
+          "stun:stun1.l.google.com:5349",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun2.l.google.com:5349",
+          "stun:stun3.l.google.com:3478",
+          "stun:stun3.l.google.com:5349",
+          "stun:stun4.l.google.com:19302",
+          "stun:stun4.l.google.com:5349"
+        ],
+        "username": "",
+        "credential": ""
+      }
+    ],
+    "ice_server_script": null,
+    "port_range": null,
+    "nat_1to1": null,
+    "network_types": [
+      "udp4",
+      "udp6"
+    ],
+    "include_loopback_candidates": true
+  },
+  "web_server": {
+    "bind_address": "127.0.0.1:8088",
+    "certificate": null,
+    "url_path_prefix": "/moonlight",
+    "session_cookie_secure": false,
+    "session_cookie_expiration": {
+      "secs": 86400,
+      "nanos": 0
+    },
+    "forwarded_header": {
+      "username_header": "X-Forwarded-User",
+      "auto_create_missing_user": true,
+      "ignore_case": true
+    },
+    "first_login_create_admin": true,
+    "first_login_assign_global_hosts": true,
+    "default_user_id": null,
+    "default_role_id": null
+  },
+  "moonlight": {
+    "default_http_port": 47989,
+    "pair_device_name": "roth"
+  },
+  "streamer_path": "./streamer",
+  "log": {
+    "level_filter": "INFO",
+    "file_path": null,
+    "dev_venator": false
+  },
+  "default_settings": null
+}

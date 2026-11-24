@@ -25,12 +25,22 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 WOLF_SOCKET_PATH=${WOLF_SOCKET_PATH:-/var/run/wolf/wolf.sock}
-socat UNIX-LISTEN:/app/wolf.sock,mode=600,user=${APP_UID},group=${APP_UID},reuseaddr,fork UNIX-CONNECT:"${WOLF_SOCKET_PATH}" 2> /dev/null &
+socat UNIX-LISTEN:/app/wolf.sock,backlog=256,mode=600,user=${APP_UID},group=${APP_UID},reuseaddr,fork UNIX-CONNECT:"${WOLF_SOCKET_PATH}" 2> /dev/null &
 export "WOLF_SOCKET_PATH=unix:///app/wolf.sock"
 
 export "DOTNET_EnableDiagnostics=0"
 export "DOTNET_DisableMetrics=1"
 export "DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0"
+
+# maximum token bucket limit
+if [ -z "$WOLF_API_TOKEN_LIMIT" ]; then
+  export "WOLF_API_TOKEN_LIMIT=15"
+fi
+
+# amount of allowed requests added to the bucket per 100ms
+if [ -z "$WOLF_API_TOKEN_PER_INTERVAL" ]; then
+  export "WOLF_API_TOKEN_PER_INTERVAL=5"
+fi
 
 echo "Starting Server"
 exec gosu "${APP_UID}" dotnet WolfLeash.dll &

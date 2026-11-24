@@ -4,6 +4,11 @@ A web UI for managing Wolf
 
 ## Quickstart
 
+> [!WARNING]
+> Wolf Den can create new apps that can have arbitrary access to parts of the Host running Wolf.
+> That's why Wolf Den should best be secured by funneling it through a reverse proxy with Authentication
+> or be kept of the local LAN entirely.
+
 > [!IMPORTANT]
 >
 > Wolf Den requires access to the Wolf UNIX socket to function correctly.
@@ -65,6 +70,7 @@ services:
     environment:
       - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
     volumes:
+      - /etc/wolf/wolf-den/aspnet:/home/ubuntu/.aspnet
       - /etc/wolf/wolf-den:/app/wolf-den/
       # Mount the Wolf socket from the host
       - /var/run/wolf:/var/run/wolf
